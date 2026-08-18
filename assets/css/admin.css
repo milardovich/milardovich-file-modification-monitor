@@ -1,10 +1,10 @@
-/* WP Code Guardian admin styles */
+/* Code Guardian admin styles */
 
-.wp-code-guardian-wrap {
+.code-guardian-wrap {
     max-width: 1200px;
 }
 
-.wp-code-guardian-stats {
+.code-guardian-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
@@ -12,14 +12,14 @@
 }
 
 @media (max-width: 1200px) {
-    .wp-code-guardian-stats { grid-template-columns: repeat(2, 1fr); }
+    .code-guardian-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 782px) {
-    .wp-code-guardian-stats { grid-template-columns: 1fr; }
+    .code-guardian-stats { grid-template-columns: 1fr; }
 }
 
-.wp-code-guardian-stats .stat-card {
+.code-guardian-stats .stat-card {
     background: #fff;
     border: 1px solid #c3c4c7;
     border-radius: 4px;
@@ -28,28 +28,28 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.wp-code-guardian-stats .stat-card.has-changes {
+.code-guardian-stats .stat-card.has-changes {
     border-color: #ffba00;
     background: #fff8e5;
 }
 
-.wp-code-guardian-stats .stat-card .dashicons {
+.code-guardian-stats .stat-card .dashicons {
     font-size: 32px;
     width: 32px;
     height: 32px;
     color: #2271b1;
 }
 
-.wp-code-guardian-stats .stat-card.has-changes .dashicons {
+.code-guardian-stats .stat-card.has-changes .dashicons {
     color: #b26200;
 }
 
-.wp-code-guardian-stats .stat-card h2 {
+.code-guardian-stats .stat-card h2 {
     font-size: 32px;
     margin: 8px 0 4px;
 }
 
-.wp-code-guardian-card {
+.code-guardian-card {
     background: #fff;
     border: 1px solid #c3c4c7;
     border-radius: 4px;
@@ -57,20 +57,20 @@
     margin: 20px 0;
 }
 
-.wp-code-guardian-info {
+.code-guardian-info {
     background: #e7f3fa;
     border-left: 4px solid #2271b1;
     padding: 10px 12px;
     margin-top: 16px;
 }
 
-.wp-code-guardian-info .dashicons {
+.code-guardian-info .dashicons {
     color: #2271b1;
     vertical-align: middle;
 }
 
 /* Status badges */
-.wp-code-guardian-status {
+.code-guardian-status {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -80,28 +80,28 @@
     font-weight: 600;
 }
 
-.wp-code-guardian-status.clean       { background: #e6f6ea; color: #1d6f3b; }
-.wp-code-guardian-status.modified    { background: #fff4d6; color: #8a5800; }
-.wp-code-guardian-status.no-baseline { background: #e7f3fa; color: #0a4b78; }
+.code-guardian-status.clean       { background: #e6f6ea; color: #1d6f3b; }
+.code-guardian-status.modified    { background: #fff4d6; color: #8a5800; }
+.code-guardian-status.no-baseline { background: #e7f3fa; color: #0a4b78; }
 
-.wp-code-guardian-status .dashicons {
+.code-guardian-status .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
 }
 
 /* Inline plugins.php warning row */
-.wp-code-guardian-changes .plugin-update {
+.code-guardian-changes .plugin-update {
     padding: 0;
 }
 
-.wp-code-guardian-changes .notice {
+.code-guardian-changes .notice {
     margin: 0;
     border-left-width: 4px;
 }
 
 /* Theme card badge */
-.wp-code-guardian-badge {
+.code-guardian-badge {
     display: inline-block;
     background: #ffba00;
     color: #2c1d00;
@@ -111,12 +111,12 @@
     margin-left: 6px;
 }
 
-.theme.wp-code-guardian-has-changes {
+.theme.code-guardian-has-changes {
     outline: 2px solid #ffba00;
 }
 
 /* Plugin row meta indicator */
-.wp-code-guardian-indicator {
+.code-guardian-indicator {
     display: inline-block;
     background: #ffba00;
     color: #2c1d00;
@@ -126,7 +126,7 @@
 }
 
 /* Legacy fallback modal */
-.wp-code-guardian-modal {
+.code-guardian-modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -134,7 +134,7 @@
     display: none;
 }
 
-.wp-code-guardian-modal.open {
+.code-guardian-modal.open {
     display: block;
 }
 
@@ -146,7 +146,7 @@
    a detached header floating above a tall empty box, so the layout below
    is ours and core's media-views stylesheet is not loaded. */
 
-.wp-code-guardian-media-modal {
+.code-guardian-media-modal {
     position: fixed;
     top: 0;
     right: 0;
@@ -158,13 +158,13 @@
     padding: 32px 16px;
 }
 
-.wp-code-guardian-media-modal.is-open {
+.code-guardian-media-modal.is-open {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.wp-code-guardian-media-modal .media-modal-backdrop {
+.code-guardian-media-modal .media-modal-backdrop {
     position: fixed;
     top: 0;
     right: 0;
@@ -173,7 +173,7 @@
     background: rgba(0, 0, 0, .7);
 }
 
-.wp-code-guardian-media-modal .media-modal {
+.code-guardian-media-modal .media-modal {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -187,18 +187,18 @@
 }
 
 /* The diff viewer needs the room; the confirm dialog does not. */
-#wp-code-guardian-modal .media-modal {
+#code-guardian-modal .media-modal {
     max-width: 1100px;
 }
 
-.wp-code-guardian-media-modal .media-frame-title {
+.code-guardian-media-modal .media-frame-title {
     flex: 0 0 auto;
     padding: 14px 52px 14px 20px;
     background: #f6f7f7;
     border-bottom: 1px solid #dcdcde;
 }
 
-.wp-code-guardian-media-modal .media-frame-title h1 {
+.code-guardian-media-modal .media-frame-title h1 {
     margin: 0;
     font-size: 15px;
     line-height: 1.5;
@@ -207,43 +207,43 @@
     overflow-wrap: break-word;
 }
 
-#wp-code-guardian-modal.update-warning .media-frame-title {
+#code-guardian-modal.update-warning .media-frame-title {
     background: #d63638;
     border-bottom-color: #d63638;
 }
 
-#wp-code-guardian-modal.update-warning .media-frame-title h1 {
+#code-guardian-modal.update-warning .media-frame-title h1 {
     color: #fff;
 }
 
-.wp-code-guardian-media-modal .media-frame-content {
+.code-guardian-media-modal .media-frame-content {
     flex: 1 1 auto;
     overflow-y: auto;
     padding: 20px;
 }
 
-.wp-code-guardian-media-modal .media-frame-content > p:first-child {
+.code-guardian-media-modal .media-frame-content > p:first-child {
     margin-top: 0;
 }
 
-.wp-code-guardian-media-modal .media-frame-content > p:last-child {
+.code-guardian-media-modal .media-frame-content > p:last-child {
     margin-bottom: 0;
 }
 
-.wp-code-guardian-media-modal .media-frame-toolbar {
+.code-guardian-media-modal .media-frame-toolbar {
     flex: 0 0 auto;
     padding: 12px 20px;
     background: #f6f7f7;
     border-top: 1px solid #dcdcde;
 }
 
-.wp-code-guardian-media-modal .media-toolbar {
+.code-guardian-media-modal .media-toolbar {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
 }
 
-.wp-code-guardian-media-modal .media-modal-close {
+.code-guardian-media-modal .media-modal-close {
     position: absolute;
     top: 9px;
     right: 10px;
@@ -257,23 +257,23 @@
     cursor: pointer;
 }
 
-.wp-code-guardian-media-modal .media-modal-close:hover,
-.wp-code-guardian-media-modal .media-modal-close:focus {
+.code-guardian-media-modal .media-modal-close:hover,
+.code-guardian-media-modal .media-modal-close:focus {
     background: rgba(0, 0, 0, .07);
     color: #1d2327;
 }
 
-#wp-code-guardian-modal.update-warning .media-modal-close {
+#code-guardian-modal.update-warning .media-modal-close {
     color: #fff;
 }
 
-#wp-code-guardian-modal.update-warning .media-modal-close:hover,
-#wp-code-guardian-modal.update-warning .media-modal-close:focus {
+#code-guardian-modal.update-warning .media-modal-close:hover,
+#code-guardian-modal.update-warning .media-modal-close:focus {
     background: rgba(255, 255, 255, .2);
     color: #fff;
 }
 
-.wp-code-guardian-media-modal .media-modal-icon::before {
+.code-guardian-media-modal .media-modal-icon::before {
     content: "\f335"; /* dashicons-no-alt */
     display: block;
     font-family: dashicons;
@@ -281,7 +281,7 @@
     line-height: 32px;
 }
 
-#wp-code-guardian-admin-modal {
+#code-guardian-admin-modal {
     z-index: 160010;
 }
 
@@ -290,33 +290,33 @@ body.modal-open {
 }
 
 /* Batch scan progress */
-.wp-code-guardian-progress {
+.code-guardian-progress {
     display: block;
     max-width: 420px;
     margin: 12px 0 0;
 }
-.wp-code-guardian-progress-track {
+.code-guardian-progress-track {
     height: 8px;
     background: #dcdcde;
     border-radius: 4px;
     overflow: hidden;
 }
-.wp-code-guardian-progress-fill {
+.code-guardian-progress-fill {
     display: block;
     height: 100%;
     width: 0;
     background: #2271b1;
     transition: width .15s linear;
 }
-.wp-code-guardian-progress.has-error .wp-code-guardian-progress-fill {
+.code-guardian-progress.has-error .code-guardian-progress-fill {
     background: #d63638;
 }
-.wp-code-guardian-progress-label {
+.code-guardian-progress-label {
     margin: 6px 0 0;
     font-size: 12px;
     color: #50575e;
 }
-.wp-code-guardian-progress.has-error .wp-code-guardian-progress-label {
+.code-guardian-progress.has-error .code-guardian-progress-label {
     color: #d63638;
 }
 
@@ -324,14 +324,14 @@ body.modal-open {
    Shown on hover and keyboard focus, and pinned open by click so touch
    users (who get neither) can read them too. */
 
-.wp-code-guardian-tip {
+.code-guardian-tip {
     position: relative;
     display: inline-block;
     vertical-align: middle;
     line-height: 1;
 }
 
-.wp-code-guardian-tip-toggle {
+.code-guardian-tip-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -345,26 +345,26 @@ body.modal-open {
     cursor: help;
 }
 
-.wp-code-guardian-tip-toggle:hover,
-.wp-code-guardian-tip-toggle:focus {
+.code-guardian-tip-toggle:hover,
+.code-guardian-tip-toggle:focus {
     color: #2271b1;
 }
 
-.wp-code-guardian-tip-toggle:focus-visible {
+.code-guardian-tip-toggle:focus-visible {
     outline: 2px solid #2271b1;
     outline-offset: 1px;
 }
 
 /* Beat the oversized .stat-card .dashicons rule above. */
-.wp-code-guardian-stats .stat-card .wp-code-guardian-tip .dashicons,
-.wp-code-guardian-tip .wp-code-guardian-tip-toggle .dashicons {
+.code-guardian-stats .stat-card .code-guardian-tip .dashicons,
+.code-guardian-tip .code-guardian-tip-toggle .dashicons {
     width: 18px;
     height: 18px;
     font-size: 18px;
     color: inherit;
 }
 
-.wp-code-guardian-tip-text {
+.code-guardian-tip-text {
     position: absolute;
     top: calc(100% + 9px);
     left: 50%;
@@ -386,7 +386,7 @@ body.modal-open {
     box-shadow: 0 2px 12px rgba(0, 0, 0, .25);
 }
 
-.wp-code-guardian-tip-text::after {
+.code-guardian-tip-text::after {
     content: "";
     position: absolute;
     bottom: 100%;
@@ -396,22 +396,22 @@ body.modal-open {
     border-bottom-color: #1d2327;
 }
 
-.wp-code-guardian-tip:hover .wp-code-guardian-tip-text,
-.wp-code-guardian-tip:focus-within .wp-code-guardian-tip-text,
-.wp-code-guardian-tip.is-open .wp-code-guardian-tip-text {
+.code-guardian-tip:hover .code-guardian-tip-text,
+.code-guardian-tip:focus-within .code-guardian-tip-text,
+.code-guardian-tip.is-open .code-guardian-tip-text {
     display: block;
 }
 
 /* Near the right edge of a table the bubble would overflow the screen. */
-th:last-child .wp-code-guardian-tip-text,
-td:last-child .wp-code-guardian-tip-text {
+th:last-child .code-guardian-tip-text,
+td:last-child .code-guardian-tip-text {
     left: auto;
     right: 0;
     transform: none;
 }
 
-th:last-child .wp-code-guardian-tip-text::after,
-td:last-child .wp-code-guardian-tip-text::after {
+th:last-child .code-guardian-tip-text::after,
+td:last-child .code-guardian-tip-text::after {
     left: auto;
     right: 6px;
     margin-left: 0;

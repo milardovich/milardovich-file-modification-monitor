@@ -1,4 +1,4 @@
-=== WP Code Guardian ===
+=== Code Guardian ===
 Contributors: milardovich
 Tags: security, file integrity, plugins, themes, code changes
 Requires at least: 5.0
@@ -12,7 +12,7 @@ Detect edits to your plugins and themes by comparing them against the original f
 
 == Description ==
 
-When someone edits a file directly inside `wp-content/plugins/` or `wp-content/themes/`, those changes are silently lost the next time the plugin or theme is updated. **WP Code Guardian** detects those modifications before they cost you.
+When someone edits a file directly inside `wp-content/plugins/` or `wp-content/themes/`, those changes are silently lost the next time the plugin or theme is updated. **Code Guardian** detects those modifications before they cost you.
 
 It downloads the **original** copy of each plugin and theme from the official WordPress.org repository, stores a baseline (a SHA-256 hash of every file), and compares the files on your site against that baseline. Any drift — modified, added or deleted files — is flagged in the admin, and you are warned before an update would overwrite your customizations.
 
@@ -39,7 +39,7 @@ This plugin connects to the WordPress.org Plugins and Themes APIs (api.wordpress
 
 == Installation ==
 
-1. Upload the `wp-code-guardian` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
+1. Upload the `code-guardian` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the **Plugins** screen in WordPress.
 3. Go to **Code Guardian** in the admin menu and click **Scan All Items** to create your first baselines.
 4. Review detected changes from the **Plugin Changes** and **Theme Changes** screens, and adjust the scan frequency under **Code Guardian → Settings**.
@@ -60,7 +60,7 @@ No. The comparison runs in a background WordPress cron event, not while a page i
 
 = Does it modify any of my files? =
 
-Only when you explicitly ask it to. By default WP Code Guardian only reads and compares files. If you choose **Restore Original** on a detected change, it writes the baseline copy back over those files on disk — overwriting your edits, recreating files you deleted and removing files you added. That action always asks for confirmation first and tells you how many files it will touch. Choosing **Keep My Changes** instead leaves every file untouched and simply records the current files as the new baseline.
+Only when you explicitly ask it to. By default Code Guardian only reads and compares files. If you choose **Restore Original** on a detected change, it writes the baseline copy back over those files on disk — overwriting your edits, recreating files you deleted and removing files you added. That action always asks for confirmation first and tells you how many files it will touch. Choosing **Keep My Changes** instead leaves every file untouched and simply records the current files as the new baseline.
 
 = Can I undo a restore? =
 
@@ -103,4 +103,4 @@ These requests happen only when a baseline is created or refreshed: when you run
 == Upgrade Notice ==
 
 = 1.0.0 =
-Initial release of WP Code Guardian.
+Initial release of Code Guardian.

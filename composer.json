@@ -1,5 +1,5 @@
 {
-    "name": "milardovich/wp-code-guardian",
+    "name": "milardovich/code-guardian",
     "description": "Detects local modifications in WordPress plugins and themes against pristine WordPress.org copies.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",

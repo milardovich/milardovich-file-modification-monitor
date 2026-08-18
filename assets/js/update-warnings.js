@@ -1,37 +1,37 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    if (typeof wpCodeGuardianWarnings === 'undefined') {
+    if (typeof codeGuardianWarnings === 'undefined') {
         return;
     }
 
-    var pluginsWithChanges = wpCodeGuardianWarnings.plugins_with_changes || [];
-    var themesWithChanges  = wpCodeGuardianWarnings.themes_with_changes || [];
-    var warningMessage     = wpCodeGuardianWarnings.warning_message || '⚠️ Code Changes Detected!';
+    var pluginsWithChanges = codeGuardianWarnings.plugins_with_changes || [];
+    var themesWithChanges  = codeGuardianWarnings.themes_with_changes || [];
+    var warningMessage     = codeGuardianWarnings.warning_message || '⚠️ Code Changes Detected!';
 
     function buildWarningModal() {
-        if ($('#wp-code-guardian-modal').length) {
-            return $('#wp-code-guardian-modal');
+        if ($('#code-guardian-modal').length) {
+            return $('#code-guardian-modal');
         }
         var html = '' +
-            '<div id="wp-code-guardian-modal" class="wp-code-guardian-media-modal update-warning" style="display:none;">' +
+            '<div id="code-guardian-modal" class="code-guardian-media-modal update-warning" style="display:none;">' +
                 '<div class="media-modal-backdrop"></div>' +
                 '<div class="media-modal wp-core-ui">' +
                     '<button type="button" class="media-modal-close"><span class="media-modal-icon"></span><span class="screen-reader-text">Close</span></button>' +
                     '<div class="media-frame-title"><h1>⚠️ Code Changes Detected</h1></div>' +
                     '<div class="media-frame-content">' +
                         '<div class="notice notice-warning"><p>' + warningMessage + '</p></div>' +
-                        '<p class="wp-code-guardian-warning-details"></p>' +
+                        '<p class="code-guardian-warning-details"></p>' +
                     '</div>' +
                     '<div class="media-frame-toolbar"><div class="media-toolbar">' +
-                        '<div class="media-toolbar-secondary"><button type="button" class="button wp-code-guardian-cancel">Cancel</button></div>' +
-                        '<div class="media-toolbar-primary"><button type="button" class="button button-primary wp-code-guardian-proceed">Proceed with Update</button></div>' +
+                        '<div class="media-toolbar-secondary"><button type="button" class="button code-guardian-cancel">Cancel</button></div>' +
+                        '<div class="media-toolbar-primary"><button type="button" class="button button-primary code-guardian-proceed">Proceed with Update</button></div>' +
                     '</div></div>' +
                 '</div>' +
             '</div>';
         var $modal = $(html);
         $('body').append($modal);
-        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .wp-code-guardian-cancel', function () {
+        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .code-guardian-cancel', function () {
             hideWarningModal();
         });
         return $modal;
@@ -39,8 +39,8 @@ jQuery(document).ready(function ($) {
 
     function showWarningModal(message, onProceed) {
         var $modal = buildWarningModal();
-        $modal.find('.wp-code-guardian-warning-details').html(message);
-        $modal.find('.wp-code-guardian-proceed').off('click').on('click', function () {
+        $modal.find('.code-guardian-warning-details').html(message);
+        $modal.find('.code-guardian-proceed').off('click').on('click', function () {
             hideWarningModal();
             if (typeof onProceed === 'function') { onProceed(); }
         });
@@ -49,7 +49,7 @@ jQuery(document).ready(function ($) {
     }
 
     function hideWarningModal() {
-        $('#wp-code-guardian-modal').hide();
+        $('#code-guardian-modal').hide();
         $('body').removeClass('modal-open');
     }
 

@@ -21,7 +21,7 @@ class WordPressOrgDownloader
     private function temp_dir()
     {
         if ($this->temp_dir === null) {
-            $this->temp_dir = trailingslashit(get_temp_dir()) . 'wp-code-guardian/';
+            $this->temp_dir = trailingslashit(get_temp_dir()) . 'code-guardian/';
         }
         if (!is_dir($this->temp_dir)) {
             wp_mkdir_p($this->temp_dir);

@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Code Guardian 1.0.0\n"
+"Project-Id-Version: Code Guardian 1.0.0\n"
 "Report-Msgid-Bugs-To: https://milardovich.com.ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -15,28 +15,28 @@ msgstr ""
 "X-Generator: build_po.py\n"
 
 #. Plugin Name of the plugin
-#: wp-code-guardian.php
+#: code-guardian.php
 #: admin/views/main-page.php:39
-msgid "WP Code Guardian"
+msgid "Code Guardian"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: wp-code-guardian.php
-msgid "https://milardovich.com.ar/plugins/wp-code-guardian"
+#: code-guardian.php
+msgid "https://milardovich.com.ar/plugins/code-guardian"
 msgstr ""
 
 #. Description of the plugin
-#: wp-code-guardian.php
+#: code-guardian.php
 msgid "Detects local code modifications in installed plugins and themes by comparing files against pristine copies from WordPress.org, and warns before updates would overwrite them."
 msgstr "Detecta modificaciones locales de código en plugins y temas instalados comparando los archivos con copias originales de WordPress.org, y advierte antes de que una actualización las sobrescriba."
 
 #. Author of the plugin
-#: wp-code-guardian.php
+#: code-guardian.php
 msgid "Sergio Milardovich"
 msgstr ""
 
 #. Author URI of the plugin
-#: wp-code-guardian.php
+#: code-guardian.php
 msgid "https://milardovich.com.ar"
 msgstr ""
 
@@ -123,8 +123,8 @@ msgid "Create baselines by downloading original plugin and theme files from Word
 msgstr "Creá líneas base descargando los archivos originales de plugins y temas desde WordPress.org."
 
 #: admin/views/main-page.php:77
-msgid "WP Code Guardian compares the files on disk against the baseline using SHA-256 hashes."
-msgstr "WP Code Guardian compara los archivos en disco con la línea base usando hashes SHA-256."
+msgid "Code Guardian compares the files on disk against the baseline using SHA-256 hashes."
+msgstr "Code Guardian compara los archivos en disco con la línea base usando hashes SHA-256."
 
 #: admin/views/main-page.php:78
 msgid "Modified plugins and themes are flagged in the WordPress admin, including a warning before any update."
@@ -239,8 +239,8 @@ msgid "Weekly"
 msgstr "Semanalmente"
 
 #: admin/views/settings-page.php:18
-msgid "WP Code Guardian Settings"
-msgstr "Ajustes de WP Code Guardian"
+msgid "Code Guardian Settings"
+msgstr "Ajustes de Code Guardian"
 
 #: admin/views/settings-page.php:23
 msgid "Scan Frequency"
@@ -362,8 +362,8 @@ msgid "Review changes before updating"
 msgstr "Revisar los cambios antes de actualizar"
 
 #: includes/Admin/AdminManager.php:395
-msgid "Welcome to WP Code Guardian!"
-msgstr "¡Te damos la bienvenida a WP Code Guardian!"
+msgid "Welcome to Code Guardian!"
+msgstr "¡Te damos la bienvenida a Code Guardian!"
 
 #: includes/Admin/AdminManager.php:396
 msgid "No baselines exist yet. Create them to start detecting unauthorized code modifications."
