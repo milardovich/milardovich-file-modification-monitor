@@ -47,6 +47,7 @@ class Plugin
         $this->load_textdomain();
         $this->register_hooks();
         $this->ensure_tables_exist();
+        $this->ensure_scan_scheduled();
         $this->admin_manager->init();
     }
 
@@ -63,6 +64,12 @@ class Plugin
     {
         register_activation_hook(WP_CODE_GUARDIAN_PLUGIN_DIR . 'wp-code-guardian.php', [$this, 'activate']);
         register_deactivation_hook(WP_CODE_GUARDIAN_PLUGIN_DIR . 'wp-code-guardian.php', [$this, 'deactivate']);
+
+        add_filter('cron_schedules', [$this, 'add_cron_schedules']);
+        add_action(AdminManager::CRON_HOOK, [$this, 'run_background_scan']);
+        add_action(AdminManager::CRON_HOOK_ONCE, [$this, 'run_background_scan']);
+        add_action('update_option_wp_code_guardian_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
+        add_action('add_option_wp_code_guardian_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
 
         add_action('upgrader_process_complete', [$this, 'handle_upgrade'], 10, 2);
         add_filter('plugin_action_links', [$this, 'add_plugin_action_links'], 10, 2);
@@ -86,15 +93,86 @@ class Plugin
         }
     }
 
+    /**
+     * WordPress ships hourly/twicedaily/daily only on older releases, so the
+     * weekly option gets its own namespaced interval rather than assuming a
+     * core 'weekly' schedule exists.
+     */
+    public function add_cron_schedules($schedules)
+    {
+        if (!isset($schedules['wp_code_guardian_weekly'])) {
+            $schedules['wp_code_guardian_weekly'] = [
+                'interval' => WEEK_IN_SECONDS,
+                'display'  => __('Once Weekly (Code Guardian)', 'wp-code-guardian'),
+            ];
+        }
+        return $schedules;
+    }
+
+    private function get_cron_schedule_name()
+    {
+        $frequency = get_option('wp_code_guardian_scan_frequency', 'daily');
+        $schedules = [
+            'hourly'     => 'hourly',
+            'twicedaily' => 'twicedaily',
+            'daily'      => 'daily',
+            'weekly'     => 'wp_code_guardian_weekly',
+        ];
+        // 'disabled' (and anything unrecognised) maps to no schedule at all.
+        return isset($schedules[$frequency]) ? $schedules[$frequency] : '';
+    }
+
+    /**
+     * Make sure the recurring scan is registered and matches the configured
+     * frequency. Called on every load so the schedule self-heals.
+     */
+    public function ensure_scan_scheduled()
+    {
+        $wanted  = $this->get_cron_schedule_name();
+        $current = wp_get_schedule(AdminManager::CRON_HOOK);
+
+        if ($wanted === '') {
+            if ($current !== false) {
+                wp_clear_scheduled_hook(AdminManager::CRON_HOOK);
+            }
+            return;
+        }
+        if ($current === $wanted) {
+            return;
+        }
+        if ($current !== false) {
+            wp_clear_scheduled_hook(AdminManager::CRON_HOOK);
+        }
+        wp_schedule_event(time() + MINUTE_IN_SECONDS, $wanted, AdminManager::CRON_HOOK);
+    }
+
+    public function reschedule_scan()
+    {
+        wp_clear_scheduled_hook(AdminManager::CRON_HOOK);
+        $this->ensure_scan_scheduled();
+        $this->admin_manager->queue_background_scan();
+    }
+
+    /**
+     * Cron entry point for both the recurring and the one-off events.
+     */
+    public function run_background_scan()
+    {
+        $this->admin_manager->run_scan();
+    }
+
     public function activate()
     {
         $this->storage->create_tables();
+        $this->ensure_scan_scheduled();
+        $this->admin_manager->queue_background_scan();
         set_transient('wp_code_guardian_show_welcome_notice', true, 30 * DAY_IN_SECONDS);
     }
 
     public function deactivate()
     {
-        // Cleanup if needed
+        wp_clear_scheduled_hook(AdminManager::CRON_HOOK);
+        wp_clear_scheduled_hook(AdminManager::CRON_HOOK_ONCE);
     }
 
     public function handle_upgrade($upgrader_object, $options)
@@ -110,7 +188,10 @@ class Plugin
             foreach ($options['themes'] as $theme_slug) {
                 $this->theme_scanner->create_snapshot($theme_slug);
             }
+        } else {
+            return;
         }
+        $this->admin_manager->invalidate_changes_map();
     }
 
     public function add_plugin_action_links($actions, $plugin_file)

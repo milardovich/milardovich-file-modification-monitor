@@ -7,6 +7,9 @@ class WordPressOrgDownloader
 {
     private $temp_dir;
     private $ignored_extensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'ico', 'pdf', 'zip', 'rar'];
+    // Mirrors BaseScanner::$scan_extensions: the baseline must hold exactly
+    // the files the disk scan enumerates, or the difference reads as changes.
+    private $scan_extensions    = ['php', 'js', 'css', 'json', 'xml', 'html', 'htm', 'txt', 'md'];
 
     /**
      * Create the downloader, ensuring the working temp directory exists.
@@ -169,6 +172,11 @@ class WordPressOrgDownloader
             }
             $ext = strtolower($file->getExtension());
             if (in_array($ext, $this->ignored_extensions, true)) {
+                continue;
+            }
+            // Keep the baseline to the same extensions the disk scan walks,
+            // otherwise the extra files register as deletions forever.
+            if (!in_array($ext, $this->scan_extensions, true)) {
                 continue;
             }
             $full_path = $file->getPathname();

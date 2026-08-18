@@ -179,3 +179,34 @@ body.modal-open { overflow: hidden; }
         max-width: 96%;
     }
 }
+
+/* Batch scan progress */
+.wp-code-guardian-progress {
+    display: block;
+    max-width: 420px;
+    margin: 12px 0 0;
+}
+.wp-code-guardian-progress-track {
+    height: 8px;
+    background: #dcdcde;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.wp-code-guardian-progress-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #2271b1;
+    transition: width .15s linear;
+}
+.wp-code-guardian-progress.has-error .wp-code-guardian-progress-fill {
+    background: #d63638;
+}
+.wp-code-guardian-progress-label {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #50575e;
+}
+.wp-code-guardian-progress.has-error .wp-code-guardian-progress-label {
+    color: #d63638;
+}

@@ -155,28 +155,112 @@ jQuery(document).ready(function ($) {
     }
 
     // Scan all
+    // Batch scan, one item per request. Walking the queue client-side is what
+    // makes a real progress bar possible: a single request for the whole set
+    // gives nothing to report until it is over, and risks the PHP time limit.
     $(document).on('click', '.wp-code-guardian-scan-all', function (e) {
         e.preventDefault();
+
         var $btn = $(this);
+        if ($btn.prop('disabled')) {
+            return;
+        }
         $btn.prop('disabled', true);
-        $.ajax({
-            url: wpCodeGuardian.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wp_code_guardian_scan_all',
-                type: $btn.data('type'),
-                nonce: wpCodeGuardian.nonce
-            }
-        }).done(function (resp) {
-            if (resp && resp.success) {
-                window.location.reload();
-            } else {
-                $btn.prop('disabled', false);
-                alert(resp && resp.data ? resp.data : wpCodeGuardian.strings.error);
-            }
-        }).fail(function () {
+
+        var $box = $btn.siblings('.wp-code-guardian-progress');
+        if (!$box.length) {
+            $box = $(
+                '<div class="wp-code-guardian-progress" role="status" aria-live="polite">' +
+                    '<div class="wp-code-guardian-progress-track">' +
+                        '<span class="wp-code-guardian-progress-fill"></span>' +
+                    '</div>' +
+                    '<p class="wp-code-guardian-progress-label"></p>' +
+                '</div>'
+            );
+            $btn.after($box);
+        }
+        var $fill  = $box.find('.wp-code-guardian-progress-fill');
+        var $label = $box.find('.wp-code-guardian-progress-label');
+        $box.removeClass('has-error').show();
+
+        function paint(done, total, text) {
+            var pct = total ? Math.round((done / total) * 100) : 0;
+            $fill.css('width', pct + '%');
+            $label.text(total ? text + ' (' + done + '/' + total + ')' : text);
+        }
+
+        function abort(message) {
             $btn.prop('disabled', false);
-            alert(wpCodeGuardian.strings.error);
+            $box.addClass('has-error');
+            $fill.css('width', '0%');
+            $label.text(message || wpCodeGuardian.strings.error);
+        }
+
+        paint(0, 0, wpCodeGuardian.strings.scan_preparing);
+
+        $.post(wpCodeGuardian.ajax_url, {
+            action: 'wp_code_guardian_scan_queue',
+            type: $btn.data('type'),
+            nonce: wpCodeGuardian.nonce
+        }).done(function (resp) {
+            if (!resp || !resp.success || !resp.data) {
+                abort(resp && resp.data ? resp.data : null);
+                return;
+            }
+
+            var queue  = resp.data.items || [];
+            var total  = queue.length;
+            var done   = 0;
+            var failed = 0;
+
+            function finish() {
+                paint(total, total, wpCodeGuardian.strings.scan_comparing);
+                $.post(wpCodeGuardian.ajax_url, {
+                    action: 'wp_code_guardian_scan_finish',
+                    nonce: wpCodeGuardian.nonce
+                }).always(function () {
+                    if (failed) {
+                        // Leave the page up so the failures stay readable.
+                        abort(wpCodeGuardian.strings.scan_failed.replace('%d', failed));
+                        return;
+                    }
+                    $label.text(wpCodeGuardian.strings.scan_done);
+                    window.location.reload();
+                });
+            }
+
+            function step() {
+                if (!queue.length) {
+                    finish();
+                    return;
+                }
+                var current = queue.shift();
+                paint(done, total, wpCodeGuardian.strings.scan_building + ' ' + current.label);
+                $.post(wpCodeGuardian.ajax_url, {
+                    action: 'wp_code_guardian_scan_item',
+                    type: current.type,
+                    item: current.item,
+                    nonce: wpCodeGuardian.nonce
+                }).done(function (r) {
+                    if (!r || !r.success) {
+                        failed++;
+                    }
+                }).fail(function () {
+                    failed++;
+                }).always(function () {
+                    done++;
+                    paint(done, total, wpCodeGuardian.strings.scan_building + ' ' + current.label);
+                    step();
+                });
+            }
+
+            if (!total) {
+                finish();
+                return;
+            }
+            step();
+        }).fail(function () {
+            abort();
         });
     });
 
@@ -236,5 +320,37 @@ jQuery(document).ready(function ($) {
                 '</div>'
             );
         }
+    });
+
+    // Run the change scan out of band. The page is already rendered by the
+    // time this fires, so comparing files never delays anything on screen.
+    // This also covers installs where WP-Cron cannot spawn its own request.
+    if (window.wpCodeGuardian && wpCodeGuardian.scan_pending) {
+        $.post(wpCodeGuardian.ajax_url, {
+            action: 'wp_code_guardian_run_scan',
+            nonce: wpCodeGuardian.nonce,
+            signature: wpCodeGuardian.scan_signature
+        }, function (response) {
+            if (!response || !response.success || !response.data || !response.data.updated) {
+                return;
+            }
+            var $target = $('.wrap').first();
+            if (!$target.length) {
+                return;
+            }
+            $target.prepend(
+                '<div class="notice notice-info is-dismissible"><p>' +
+                    wpCodeGuardian.strings.scan_updated + ' ' +
+                    '<a href="#" class="wp-code-guardian-reload">' +
+                        wpCodeGuardian.strings.reload +
+                    '</a>' +
+                '</p></div>'
+            );
+        });
+    }
+
+    $(document).on('click', '.wp-code-guardian-reload', function (e) {
+        e.preventDefault();
+        window.location.reload();
     });
 });

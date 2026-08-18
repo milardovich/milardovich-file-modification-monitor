@@ -10,9 +10,19 @@ class AdminManager
     private $plugin_scanner;
     private $theme_scanner;
 
-    private $changes_cache_key = 'wp_code_guardian_changes_cache';
-    private $last_check_key    = 'wp_code_guardian_last_check';
-    private $runtime_cache     = [];
+    /** Recurring background scan, scheduled from the frequency setting. */
+    const CRON_HOOK = 'wp_code_guardian_scan';
+
+    /** One-off background scan, queued when the cached map is missing/stale. */
+    const CRON_HOOK_ONCE = 'wp_code_guardian_scan_now';
+
+    private $changes_map_key  = 'wp_code_guardian_changes_map';
+    private $legacy_cache_key = 'wp_code_guardian_changes_cache';
+    private $last_check_key   = 'wp_code_guardian_last_check';
+    private $scan_lock_key    = 'wp_code_guardian_scan_lock';
+
+    /** Per-request memo of the stored map: null = unread, false = absent. */
+    private $changes_map = null;
 
     public function __construct(PluginScanner $plugin_scanner, ThemeScanner $theme_scanner)
     {
@@ -31,6 +41,10 @@ class AdminManager
         add_action('wp_ajax_wp_code_guardian_scan_all', [$this, 'ajax_scan_all']);
         add_action('wp_ajax_wp_code_guardian_clear_snapshots', [$this, 'ajax_clear_snapshots']);
         add_action('wp_ajax_wp_code_guardian_rescan_all', [$this, 'ajax_rescan_all']);
+        add_action('wp_ajax_wp_code_guardian_run_scan', [$this, 'ajax_run_scan']);
+        add_action('wp_ajax_wp_code_guardian_scan_queue', [$this, 'ajax_scan_queue']);
+        add_action('wp_ajax_wp_code_guardian_scan_item', [$this, 'ajax_scan_item']);
+        add_action('wp_ajax_wp_code_guardian_scan_finish', [$this, 'ajax_scan_finish']);
         add_action('wp_ajax_wp_code_guardian_dismiss_welcome', [$this, 'ajax_dismiss_welcome']);
 
         add_filter('plugin_row_meta', [$this, 'add_plugin_row_meta'], 10, 2);
@@ -93,35 +107,20 @@ class AdminManager
         return in_array($value, $allowed, true) ? $value : 'daily';
     }
 
-    public function should_check_for_changes()
+    /**
+     * Whether the cached map is older than the configured scan frequency.
+     * Purely a read: unlike the previous implementation it has no side
+     * effects and never triggers a scan by itself.
+     */
+    public function is_scan_due()
     {
-        $frequency = get_option('wp_code_guardian_scan_frequency', 'daily');
-        if ($frequency === 'disabled') {
+        if (get_option('wp_code_guardian_scan_frequency', 'daily') === 'disabled') {
             return false;
         }
-        $intervals = [
-            'hourly'     => HOUR_IN_SECONDS,
-            'twicedaily' => 12 * HOUR_IN_SECONDS,
-            'daily'      => DAY_IN_SECONDS,
-            'weekly'     => WEEK_IN_SECONDS,
-        ];
-        $interval = isset($intervals[$frequency]) ? $intervals[$frequency] : DAY_IN_SECONDS;
-        $last     = (int) get_option($this->last_check_key, 0);
-        if ((time() - $last) >= $interval) {
-            update_option($this->last_check_key, time());
-            delete_transient($this->changes_cache_key);
-            return true;
-        }
-        return false;
+        return (time() - $this->get_last_check()) >= $this->get_scan_interval();
     }
 
-    public function get_cached_changes()
-    {
-        $cached = get_transient($this->changes_cache_key);
-        return is_array($cached) ? $cached : null;
-    }
-
-    public function cache_changes($changes)
+    public function get_scan_interval()
     {
         $frequency = get_option('wp_code_guardian_scan_frequency', 'daily');
         $intervals = [
@@ -130,33 +129,150 @@ class AdminManager
             'daily'      => DAY_IN_SECONDS,
             'weekly'     => WEEK_IN_SECONDS,
         ];
-        $ttl = isset($intervals[$frequency]) ? $intervals[$frequency] : DAY_IN_SECONDS;
-        set_transient($this->changes_cache_key, $changes, $ttl);
+        return isset($intervals[$frequency]) ? $intervals[$frequency] : DAY_IN_SECONDS;
+    }
+
+    public function get_last_check()
+    {
+        return (int) get_option($this->last_check_key, 0);
+    }
+
+    /**
+     * The cached result of the last scan, shaped as
+     * ['plugins' => [plugin_file => changed_file_count], 'themes' => [...]].
+     *
+     * This is the only thing the admin screens read. It never scans: when the
+     * map is missing or stale a scan is queued to run in a separate request
+     * and the last known result (or an empty map) is returned immediately, so
+     * rendering an admin page never waits on file hashing.
+     */
+    public function get_changes_map()
+    {
+        if ($this->changes_map === null) {
+            $stored = get_option($this->changes_map_key, null);
+            $this->changes_map = is_array($stored)
+                ? array_merge(['plugins' => [], 'themes' => []], $stored)
+                : false;
+        }
+        if ($this->changes_map === false || $this->is_scan_due()) {
+            $this->queue_background_scan();
+        }
+        return $this->changes_map === false
+            ? ['plugins' => [], 'themes' => []]
+            : $this->changes_map;
     }
 
     public function has_changes_cached($item, $type)
     {
-        $key = $type . ':' . $item;
-        if (isset($this->runtime_cache[$key])) {
-            return $this->runtime_cache[$key];
-        }
-
-        $cached = $this->get_cached_changes();
-        if ($cached === null) {
-            if (!$this->should_check_for_changes()) {
-                $this->runtime_cache[$key] = false;
-                return false;
-            }
-            $cached = $this->build_changes_map();
-            $this->cache_changes($cached);
-        }
-
-        $bucket = $type === 'plugin' ? 'plugins' : 'themes';
-        $value  = !empty($cached[$bucket][$item]);
-        $this->runtime_cache[$key] = $value;
-        return $value;
+        return $this->get_change_count_cached($item, $type) > 0;
     }
 
+    /**
+     * Number of changed files recorded for an item by the last scan. Zero
+     * also covers "no baseline" and "never scanned yet".
+     */
+    public function get_change_count_cached($item, $type)
+    {
+        $map    = $this->get_changes_map();
+        $bucket = $type === 'plugin' ? 'plugins' : 'themes';
+        return isset($map[$bucket][$item]) ? (int) $map[$bucket][$item] : 0;
+    }
+
+    public function get_cached_changes_for_warnings()
+    {
+        return $this->get_changes_map();
+    }
+
+    /**
+     * Fingerprint of the rendered map, so a background scan can tell the
+     * browser whether the page it is looking at went out of date.
+     */
+    public function get_map_signature($map = null)
+    {
+        if ($map === null) {
+            $map = $this->get_changes_map();
+        }
+        return md5(wp_json_encode($map));
+    }
+
+    /**
+     * True when the screen is rendering without a fresh map. The browser uses
+     * this to kick the scan over AJAX, which keeps the work off the page
+     * request even where WP-Cron cannot spawn its own loopback request.
+     */
+    public function needs_background_scan()
+    {
+        if (get_option('wp_code_guardian_scan_frequency', 'daily') === 'disabled') {
+            return false;
+        }
+        if (get_transient($this->scan_lock_key)) {
+            return false;
+        }
+        return !is_array(get_option($this->changes_map_key, null)) || $this->is_scan_due();
+    }
+
+    /**
+     * Queue the scan as a one-off WP-Cron event and return immediately. No
+     * scanning happens here; the event fires in a later, separate request.
+     */
+    public function queue_background_scan()
+    {
+        if (get_option('wp_code_guardian_scan_frequency', 'daily') === 'disabled') {
+            return;
+        }
+        if (get_transient($this->scan_lock_key)) {
+            return;
+        }
+        if (!wp_next_scheduled(self::CRON_HOOK_ONCE)) {
+            wp_schedule_single_event(time(), self::CRON_HOOK_ONCE);
+        }
+    }
+
+    /**
+     * The expensive pass. Only ever reached from the WP-Cron handler or the
+     * dedicated AJAX endpoint -- never from a page render. A short-lived lock
+     * keeps concurrent requests from scanning on top of each other.
+     */
+    public function run_scan()
+    {
+        if (get_transient($this->scan_lock_key)) {
+            return false;
+        }
+        set_transient($this->scan_lock_key, time(), 10 * MINUTE_IN_SECONDS);
+        try {
+            $map = $this->build_changes_map();
+            update_option($this->changes_map_key, $map, false);
+            update_option($this->last_check_key, time(), false);
+            delete_transient($this->legacy_cache_key);
+            $this->changes_map = $map;
+            Logger::log(sprintf(
+                'Background scan finished: %d modified plugins, %d modified themes',
+                count($map['plugins']),
+                count($map['themes'])
+            ));
+        } finally {
+            delete_transient($this->scan_lock_key);
+        }
+        return true;
+    }
+
+    /**
+     * Drop the cached map and queue a fresh scan. Used whenever baselines
+     * change underneath it: manual refresh, rescan, or a WordPress update.
+     */
+    public function invalidate_changes_map()
+    {
+        delete_option($this->changes_map_key);
+        delete_option($this->last_check_key);
+        delete_transient($this->legacy_cache_key);
+        $this->changes_map = null;
+        $this->queue_background_scan();
+    }
+
+    /**
+     * Compare every plugin and theme against its baseline. Hash-only: file
+     * contents are never loaded and no diffs are generated here.
+     */
     private function build_changes_map()
     {
         if (!function_exists('get_plugins')) {
@@ -165,29 +281,24 @@ class AdminManager
         $map = ['plugins' => [], 'themes' => []];
 
         foreach (array_keys(get_plugins()) as $plugin_file) {
-            if ($this->plugin_scanner->has_stored_snapshots($plugin_file) && $this->plugin_scanner->has_changes($plugin_file)) {
-                $map['plugins'][$plugin_file] = true;
+            if (!$this->plugin_scanner->has_stored_snapshots($plugin_file)) {
+                continue;
+            }
+            $count = $this->plugin_scanner->count_changes($plugin_file);
+            if ($count > 0) {
+                $map['plugins'][$plugin_file] = $count;
             }
         }
-        foreach (wp_get_themes() as $slug => $theme) {
-            if ($this->theme_scanner->has_stored_snapshots($slug) && $this->theme_scanner->has_changes($slug)) {
-                $map['themes'][$slug] = true;
+        foreach (array_keys(wp_get_themes()) as $slug) {
+            if (!$this->theme_scanner->has_stored_snapshots($slug)) {
+                continue;
+            }
+            $count = $this->theme_scanner->count_changes($slug);
+            if ($count > 0) {
+                $map['themes'][$slug] = $count;
             }
         }
         return $map;
-    }
-
-    public function get_cached_changes_for_warnings()
-    {
-        $cached = $this->get_cached_changes();
-        if ($cached === null) {
-            if (!$this->should_check_for_changes()) {
-                return ['plugins' => [], 'themes' => []];
-            }
-            $cached = $this->build_changes_map();
-            $this->cache_changes($cached);
-        }
-        return $cached;
     }
 
     public function enqueue_admin_assets($hook)
@@ -197,10 +308,15 @@ class AdminManager
         if (!$is_guardian && !$is_wp_page) {
             return;
         }
+        // The diff modal is built out of core's .media-modal markup, which is
+        // positioned by this stylesheet. Without it the modal renders as an
+        // unstyled block at the foot of the page and clicking "View Changes"
+        // looks like it does nothing at all.
+        wp_enqueue_style('media-views');
         wp_enqueue_style(
             'wp-code-guardian-admin',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/css/admin.css',
-            [],
+            ['media-views'],
             WP_CODE_GUARDIAN_VERSION
         );
         wp_enqueue_style(
@@ -220,14 +336,24 @@ class AdminManager
             'wp-code-guardian-admin',
             'wpCodeGuardian',
             [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce'    => wp_create_nonce('wp_code_guardian'),
+                'ajax_url'       => admin_url('admin-ajax.php'),
+                'nonce'          => wp_create_nonce('wp_code_guardian'),
+                'scan_pending'   => $this->needs_background_scan(),
+                'scan_signature' => $this->get_map_signature(),
                 'strings'  => [
                     'view_changes'     => __('View Changes', 'wp-code-guardian'),
                     'refresh_snapshot' => __('Refresh Baseline', 'wp-code-guardian'),
                     'confirm_refresh'  => __('Are you sure you want to refresh the baseline? This will overwrite the stored snapshot.', 'wp-code-guardian'),
                     'loading'          => __('Loading…', 'wp-code-guardian'),
                     'error'            => __('An error occurred.', 'wp-code-guardian'),
+                    'scan_updated'     => __('Code Guardian finished checking for code changes in the background.', 'wp-code-guardian'),
+                    'reload'           => __('Reload to see the results', 'wp-code-guardian'),
+                    'scan_preparing'   => __('Preparing…', 'wp-code-guardian'),
+                    'scan_building'    => __('Building baseline for', 'wp-code-guardian'),
+                    'scan_comparing'   => __('Comparing files against the baselines…', 'wp-code-guardian'),
+                    'scan_done'        => __('Done. Reloading…', 'wp-code-guardian'),
+                    /* translators: %d: number of items that could not be scanned. */
+                    'scan_failed'      => __('%d item(s) could not be scanned.', 'wp-code-guardian'),
                 ],
             ]
         );
@@ -240,19 +366,9 @@ class AdminManager
 
     public function show_plugin_changes_row($plugin_file, $plugin_data, $status)
     {
-        // Skip if scanning is disabled / not yet time, unless we already have cached data.
-        $cached = $this->get_cached_changes();
-        if ($cached === null && !$this->should_check_for_changes()) {
-            return;
-        }
-        if (!$this->plugin_scanner->has_stored_snapshots($plugin_file)) {
-            return;
-        }
-        if (!$this->has_changes_cached($plugin_file, 'plugin')) {
-            return;
-        }
-        $changes = $this->plugin_scanner->get_changes($plugin_file);
-        $count   = count($changes);
+        // Cached lookup only. The comparison that produced this count ran in a
+        // background request; rendering the row must never scan or diff.
+        $count = $this->get_change_count_cached($plugin_file, 'plugin');
         if ($count === 0) {
             return;
         }
@@ -291,13 +407,8 @@ class AdminManager
 
     public function inject_theme_labels_script()
     {
-        $themes        = wp_get_themes();
-        $modified_slugs = [];
-        foreach ($themes as $slug => $theme) {
-            if ($this->theme_scanner->has_stored_snapshots($slug) && $this->has_changes_cached($slug, 'theme')) {
-                $modified_slugs[] = $slug;
-            }
-        }
+        $map            = $this->get_changes_map();
+        $modified_slugs = array_keys($map['themes']);
         if (empty($modified_slugs)) {
             return;
         }
@@ -320,9 +431,6 @@ class AdminManager
 
     public function add_plugin_row_meta($plugin_meta, $plugin_file)
     {
-        if (!$this->plugin_scanner->has_stored_snapshots($plugin_file)) {
-            return $plugin_meta;
-        }
         if (!$this->has_changes_cached($plugin_file, 'plugin')) {
             return $plugin_meta;
         }
@@ -336,26 +444,25 @@ class AdminManager
         if (!$screen || !in_array($screen->id, ['update-core', 'update'], true)) {
             return;
         }
+        $map = $this->get_changes_map();
+        if (empty($map['plugins']) && empty($map['themes'])) {
+            return;
+        }
         if (!function_exists('get_plugins')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
         $plugins = get_plugins();
-        $themes  = wp_get_themes();
 
         $modified_plugins = [];
-        foreach ($plugins as $plugin_file => $data) {
-            if ($this->has_changes_cached($plugin_file, 'plugin')) {
-                $modified_plugins[] = $data['Name'];
-            }
+        foreach (array_keys($map['plugins']) as $plugin_file) {
+            $modified_plugins[] = isset($plugins[$plugin_file]['Name'])
+                ? $plugins[$plugin_file]['Name']
+                : $plugin_file;
         }
         $modified_themes = [];
-        foreach ($themes as $slug => $theme) {
-            if ($this->has_changes_cached($slug, 'theme')) {
-                $modified_themes[] = $theme->get('Name');
-            }
-        }
-        if (empty($modified_plugins) && empty($modified_themes)) {
-            return;
+        foreach (array_keys($map['themes']) as $slug) {
+            $theme             = wp_get_theme($slug);
+            $modified_themes[] = $theme->exists() ? $theme->get('Name') : $slug;
         }
         ?>
         <div class="notice notice-warning is-dismissible">
@@ -464,7 +571,7 @@ class AdminManager
             } else {
                 wp_send_json_error('Unknown type');
             }
-            delete_transient($this->changes_cache_key);
+            $this->invalidate_changes_map();
             $msg = !empty($result['remote'])
                 ? __('Baseline created/updated successfully from WordPress.org', 'wp-code-guardian')
                 : __('Baseline updated from current files', 'wp-code-guardian');
@@ -490,17 +597,10 @@ class AdminManager
                 $this->plugin_scanner->scan_all();
                 $this->theme_scanner->scan_all();
             }
-            delete_transient($this->changes_cache_key);
-            delete_option($this->last_check_key);
-
-            if (!function_exists('get_plugins')) {
-                require_once ABSPATH . 'wp-admin/includes/plugin.php';
-            }
-            foreach (array_keys(get_plugins()) as $plugin_file) {
-                $has = $this->plugin_scanner->has_stored_snapshots($plugin_file)
-                    && $this->plugin_scanner->has_changes($plugin_file);
-                Logger::log(($has ? 'HAS CHANGES' : 'NO CHANGES') . ': ' . $plugin_file);
-            }
+            // Baselines just changed, so recompute the map here rather than
+            // leaving the next admin page load to notice it is stale.
+            $this->invalidate_changes_map();
+            $this->run_scan();
             wp_send_json_success(['message' => __('Scan completed successfully', 'wp-code-guardian')]);
         } catch (\Exception $e) {
             Logger::log('ajax_scan_all: ' . $e->getMessage());
@@ -517,7 +617,7 @@ class AdminManager
             $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}code_guardian_plugins");
             $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}code_guardian_themes");
             // phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
-            delete_transient($this->changes_cache_key);
+            $this->invalidate_changes_map();
             wp_send_json_success(['message' => __('All snapshots cleared successfully', 'wp-code-guardian')]);
         } catch (\Exception $e) {
             Logger::log('ajax_clear_snapshots: ' . $e->getMessage());
@@ -531,10 +631,125 @@ class AdminManager
             $this->verify_ajax_request();
             $this->plugin_scanner->scan_all();
             $this->theme_scanner->scan_all();
-            delete_transient($this->changes_cache_key);
+            $this->invalidate_changes_map();
+            $this->run_scan();
             wp_send_json_success(['message' => __('Rescan completed successfully', 'wp-code-guardian')]);
         } catch (\Exception $e) {
             Logger::log('ajax_rescan_all: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Step 1 of a batch scan: the list of items the browser will walk. Sending
+     * the queue up front is what lets the progress bar show a real total
+     * instead of an indeterminate spinner.
+     */
+    public function ajax_scan_queue()
+    {
+        try {
+            $this->verify_ajax_request();
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : 'all';
+            if (!function_exists('get_plugins')) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+
+            $items = [];
+            if ($type === 'plugins' || $type === 'all') {
+                foreach (get_plugins() as $plugin_file => $data) {
+                    $items[] = [
+                        'type'  => 'plugin',
+                        'item'  => $plugin_file,
+                        'label' => $data['Name'],
+                    ];
+                }
+            }
+            if ($type === 'themes' || $type === 'all') {
+                foreach (wp_get_themes() as $slug => $theme) {
+                    $items[] = [
+                        'type'  => 'theme',
+                        'item'  => $slug,
+                        'label' => $theme->get('Name'),
+                    ];
+                }
+            }
+            wp_send_json_success(['items' => $items, 'total' => count($items)]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_scan_queue: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Step 2: rebuild the baseline for a single item. One request per item
+     * keeps each one well inside the PHP time limit and gives the browser
+     * something to count.
+     */
+    public function ajax_scan_item()
+    {
+        try {
+            $this->verify_ajax_request();
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+
+            if ($type === 'plugin') {
+                $result = $this->plugin_scanner->refresh_snapshot($item);
+            } elseif ($type === 'theme') {
+                $result = $this->theme_scanner->refresh_snapshot($item);
+            } else {
+                wp_send_json_error('Unknown type');
+                return;
+            }
+            wp_send_json_success([
+                'item'   => $item,
+                'remote' => !empty($result['remote']),
+            ]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_scan_item: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Step 3: every baseline is current, so recompute the change map once.
+     */
+    public function ajax_scan_finish()
+    {
+        try {
+            $this->verify_ajax_request();
+            $this->invalidate_changes_map();
+            $this->run_scan();
+            $map = $this->get_changes_map();
+            wp_send_json_success([
+                'plugins' => count($map['plugins']),
+                'themes'  => count($map['themes']),
+            ]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_scan_finish: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Runs the change scan out of band, triggered by the browser after the
+     * admin page has already rendered. Nothing the user is waiting on blocks
+     * on this request.
+     */
+    public function ajax_run_scan()
+    {
+        try {
+            $this->verify_ajax_request();
+            $rendered = isset($_POST['signature']) ? sanitize_text_field(wp_unslash($_POST['signature'])) : '';
+            $ran      = $this->run_scan();
+            $map      = $this->get_changes_map();
+            wp_send_json_success([
+                'ran'     => (bool) $ran,
+                'updated' => $ran && $rendered !== '' && $rendered !== $this->get_map_signature($map),
+                'plugins' => count($map['plugins']),
+                'themes'  => count($map['themes']),
+            ]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_run_scan: ' . $e->getMessage());
             wp_send_json_error('Error: ' . $e->getMessage());
         }
     }

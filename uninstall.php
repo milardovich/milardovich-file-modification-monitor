@@ -34,6 +34,7 @@ $options = [
     'wp_code_guardian_ignored_files',
     'wp_code_guardian_show_warnings',
     'wp_code_guardian_last_check',
+    'wp_code_guardian_changes_map',
 ];
 foreach ($options as $option) {
     delete_option($option);
@@ -41,4 +42,9 @@ foreach ($options as $option) {
 
 // Delete plugin transients.
 delete_transient('wp_code_guardian_changes_cache');
+delete_transient('wp_code_guardian_scan_lock');
 delete_transient('wp_code_guardian_show_welcome_notice');
+
+// Drop the background scan events.
+wp_clear_scheduled_hook('wp_code_guardian_scan');
+wp_clear_scheduled_hook('wp_code_guardian_scan_now');

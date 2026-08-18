@@ -85,6 +85,7 @@ abstract class BaseScanner
      */
     protected function detect_has_changes(array $disk_files, array $stored_hashes)
     {
+        $stored_hashes = $this->filter_scannable($stored_hashes);
         $seen = [];
         foreach ($disk_files as $rel => $full) {
             $seen[$rel] = true;
@@ -115,6 +116,7 @@ abstract class BaseScanner
      */
     protected function detect_changed_paths(array $disk_files, array $stored_hashes)
     {
+        $stored_hashes = $this->filter_scannable($stored_hashes);
         $changed = [];
         $seen    = [];
         foreach ($disk_files as $rel => $full) {
@@ -129,6 +131,25 @@ abstract class BaseScanner
             }
         }
         return $changed;
+    }
+
+    /**
+     * Drop baseline entries the disk side never looks at. The WordPress.org
+     * download stores every non-binary file it finds, while enumerate_files()
+     * only walks the scannable extensions -- so .scss, .ts, .csv and friends
+     * would otherwise be reported as deleted on every single comparison.
+     *
+     * @param array $stored_hashes Map of relative path => sha256 hash.
+     */
+    protected function filter_scannable(array $stored_hashes)
+    {
+        $filtered = [];
+        foreach ($stored_hashes as $rel => $hash) {
+            if ($this->should_scan_file($rel)) {
+                $filtered[$rel] = $hash;
+            }
+        }
+        return $filtered;
     }
 
     abstract public function scan_all();

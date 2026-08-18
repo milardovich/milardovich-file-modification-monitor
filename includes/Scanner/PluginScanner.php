@@ -116,72 +116,38 @@ class PluginScanner extends BaseScanner
         return [$disk_files, $stored_hashes];
     }
 
+    /**
+     * Full diffs for a plugin. The changed paths are resolved from hashes
+     * first, so only those files have their contents pulled back out of the
+     * baseline: a large plugin is overwhelmingly made of untouched files, and
+     * fetching a row per file is what made this take minutes.
+     */
     public function get_changes($plugin_file)
     {
         $changes     = [];
         $plugin_slug = $this->downloader->get_plugin_slug_from_file($plugin_file);
 
-        // Build list of current files
-        $current_files = [];
-        if (dirname($plugin_file) === '.' || dirname($plugin_file) === '') {
-            $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
-            if (file_exists($plugin_path)) {
-                $current_files[] = [
-                    'path'      => basename($plugin_file),
-                    'full_path' => $plugin_path,
-                    'content'   => file_get_contents($plugin_path),
-                ];
-            }
-        } else {
-            $dir           = WP_PLUGIN_DIR . '/' . dirname($plugin_file);
-            $current_files = $this->scan_directory($dir, $dir);
-        }
+        list($disk_files, $stored_hashes) = $this->gather_for_comparison($plugin_file);
 
-        $seen_paths = [];
-        foreach ($current_files as $file) {
-            $seen_paths[$file['path']] = true;
-            $snapshot = $this->storage->get_plugin_snapshot($plugin_slug, $file['path']);
-            if ($snapshot) {
-                $current_hash = hash('sha256', $file['content']);
-                if ($current_hash !== $snapshot['file_hash']) {
-                    $changes[] = [
-                        'file'        => $file['path'],
-                        'diff'        => $this->diff_generator->generate($snapshot['file_content'], $file['content']),
-                        'old_content' => $snapshot['file_content'],
-                        'new_content' => $file['content'],
-                        'is_new'      => false,
-                        'is_deleted'  => false,
-                    ];
-                }
-            } else {
-                $changes[] = [
-                    'file'        => $file['path'],
-                    'diff'        => $this->diff_generator->generate('', $file['content']),
-                    'old_content' => '',
-                    'new_content' => $file['content'],
-                    'is_new'      => true,
-                    'is_deleted'  => false,
-                ];
-            }
-        }
+        foreach ($this->detect_changed_paths($disk_files, $stored_hashes) as $path) {
+            $on_disk     = isset($disk_files[$path]);
+            $in_baseline = isset($stored_hashes[$path]);
 
-        // Detect deletions (files present in snapshot but missing on disk).
-        $stored = $this->storage->get_all_plugin_files($plugin_slug);
-        foreach ($stored as $row) {
-            $path = $row['file_path'];
-            if (!isset($seen_paths[$path])) {
-                $snapshot = $this->storage->get_plugin_snapshot($plugin_slug, $path);
-                if ($snapshot) {
-                    $changes[] = [
-                        'file'        => $path,
-                        'diff'        => $this->diff_generator->generate($snapshot['file_content'], ''),
-                        'old_content' => $snapshot['file_content'],
-                        'new_content' => '',
-                        'is_new'      => false,
-                        'is_deleted'  => true,
-                    ];
-                }
+            $new_content = $on_disk ? file_get_contents($disk_files[$path]) : '';
+            $old_content = '';
+            if ($in_baseline) {
+                $snapshot    = $this->storage->get_plugin_snapshot($plugin_slug, $path);
+                $old_content = $snapshot ? $snapshot['file_content'] : '';
             }
+
+            $changes[] = [
+                'file'        => $path,
+                'diff'        => $this->diff_generator->generate($old_content, $new_content),
+                'old_content' => $old_content,
+                'new_content' => $new_content,
+                'is_new'      => !$in_baseline,
+                'is_deleted'  => !$on_disk,
+            ];
         }
 
         return $changes;

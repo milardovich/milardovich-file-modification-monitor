@@ -90,60 +90,36 @@ class ThemeScanner extends BaseScanner
         return [$disk_files, $stored_hashes];
     }
 
+    /**
+     * Full diffs for a theme. Mirrors PluginScanner::get_changes(): changed
+     * paths come from hashes, and only those files have their baseline
+     * contents loaded.
+     */
     public function get_changes($theme_slug)
     {
         $changes = [];
-        $theme   = wp_get_theme($theme_slug);
-        if (!$theme->exists()) {
-            return $changes;
-        }
-        $dir           = $theme->get_stylesheet_directory();
-        $current_files = $this->scan_directory($dir, $dir);
 
-        $seen_paths = [];
-        foreach ($current_files as $file) {
-            $seen_paths[$file['path']] = true;
-            $snapshot = $this->storage->get_theme_snapshot($theme_slug, $file['path']);
-            if ($snapshot) {
-                $current_hash = hash('sha256', $file['content']);
-                if ($current_hash !== $snapshot['file_hash']) {
-                    $changes[] = [
-                        'file'        => $file['path'],
-                        'diff'        => $this->diff_generator->generate($snapshot['file_content'], $file['content']),
-                        'old_content' => $snapshot['file_content'],
-                        'new_content' => $file['content'],
-                        'is_new'      => false,
-                        'is_deleted'  => false,
-                    ];
-                }
-            } else {
-                $changes[] = [
-                    'file'        => $file['path'],
-                    'diff'        => $this->diff_generator->generate('', $file['content']),
-                    'old_content' => '',
-                    'new_content' => $file['content'],
-                    'is_new'      => true,
-                    'is_deleted'  => false,
-                ];
-            }
-        }
+        list($disk_files, $stored_hashes) = $this->gather_for_comparison($theme_slug);
 
-        $stored = $this->storage->get_all_theme_files($theme_slug);
-        foreach ($stored as $row) {
-            $path = $row['file_path'];
-            if (!isset($seen_paths[$path])) {
-                $snapshot = $this->storage->get_theme_snapshot($theme_slug, $path);
-                if ($snapshot) {
-                    $changes[] = [
-                        'file'        => $path,
-                        'diff'        => $this->diff_generator->generate($snapshot['file_content'], ''),
-                        'old_content' => $snapshot['file_content'],
-                        'new_content' => '',
-                        'is_new'      => false,
-                        'is_deleted'  => true,
-                    ];
-                }
+        foreach ($this->detect_changed_paths($disk_files, $stored_hashes) as $path) {
+            $on_disk     = isset($disk_files[$path]);
+            $in_baseline = isset($stored_hashes[$path]);
+
+            $new_content = $on_disk ? file_get_contents($disk_files[$path]) : '';
+            $old_content = '';
+            if ($in_baseline) {
+                $snapshot    = $this->storage->get_theme_snapshot($theme_slug, $path);
+                $old_content = $snapshot ? $snapshot['file_content'] : '';
             }
+
+            $changes[] = [
+                'file'        => $path,
+                'diff'        => $this->diff_generator->generate($old_content, $new_content),
+                'old_content' => $old_content,
+                'new_content' => $new_content,
+                'is_new'      => !$in_baseline,
+                'is_deleted'  => !$on_disk,
+            ];
         }
 
         return $changes;
