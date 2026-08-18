@@ -87,27 +87,33 @@ class SnapshotStorage
     public function get_plugin_snapshot($slug, $path)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT * FROM {$this->table_plugins}
-             WHERE plugin_slug = %s AND file_path = %s
-             ORDER BY snapshot_time DESC LIMIT 1",
-            $slug,
-            $path
+        return $wpdb->get_row(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT * FROM {$this->table_plugins}
+                 WHERE plugin_slug = %s AND file_path = %s
+                 ORDER BY snapshot_time DESC LIMIT 1",
+                $slug,
+                $path
+            ),
+            ARRAY_A
         );
-        return $wpdb->get_row($sql, ARRAY_A);
     }
 
     public function get_theme_snapshot($slug, $path)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT * FROM {$this->table_themes}
-             WHERE theme_slug = %s AND file_path = %s
-             ORDER BY snapshot_time DESC LIMIT 1",
-            $slug,
-            $path
+        return $wpdb->get_row(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT * FROM {$this->table_themes}
+                 WHERE theme_slug = %s AND file_path = %s
+                 ORDER BY snapshot_time DESC LIMIT 1",
+                $slug,
+                $path
+            ),
+            ARRAY_A
         );
-        return $wpdb->get_row($sql, ARRAY_A);
     }
 
     /**
@@ -118,19 +124,23 @@ class SnapshotStorage
     public function get_plugin_file_hashes($slug)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT t.file_path, t.file_hash
-             FROM {$this->table_plugins} t
-             INNER JOIN (
-                 SELECT file_path, MAX(id) AS max_id
-                 FROM {$this->table_plugins}
-                 WHERE plugin_slug = %s
-                 GROUP BY file_path
-             ) m ON t.id = m.max_id",
-            $slug
+        $rows = $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT t.file_path, t.file_hash
+                 FROM {$this->table_plugins} t
+                 INNER JOIN (
+                     SELECT file_path, MAX(id) AS max_id
+                     FROM {$this->table_plugins}
+                     WHERE plugin_slug = %s
+                     GROUP BY file_path
+                 ) m ON t.id = m.max_id",
+                $slug
+            ),
+            ARRAY_A
         );
         $map = [];
-        foreach ($wpdb->get_results($sql, ARRAY_A) as $row) {
+        foreach ($rows as $row) {
             $map[$row['file_path']] = $row['file_hash'];
         }
         return $map;
@@ -139,19 +149,23 @@ class SnapshotStorage
     public function get_theme_file_hashes($slug)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT t.file_path, t.file_hash
-             FROM {$this->table_themes} t
-             INNER JOIN (
-                 SELECT file_path, MAX(id) AS max_id
-                 FROM {$this->table_themes}
-                 WHERE theme_slug = %s
-                 GROUP BY file_path
-             ) m ON t.id = m.max_id",
-            $slug
+        $rows = $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT t.file_path, t.file_hash
+                 FROM {$this->table_themes} t
+                 INNER JOIN (
+                     SELECT file_path, MAX(id) AS max_id
+                     FROM {$this->table_themes}
+                     WHERE theme_slug = %s
+                     GROUP BY file_path
+                 ) m ON t.id = m.max_id",
+                $slug
+            ),
+            ARRAY_A
         );
         $map = [];
-        foreach ($wpdb->get_results($sql, ARRAY_A) as $row) {
+        foreach ($rows as $row) {
             $map[$row['file_path']] = $row['file_hash'];
         }
         return $map;
@@ -160,21 +174,27 @@ class SnapshotStorage
     public function get_all_plugin_files($slug)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT DISTINCT file_path FROM {$this->table_plugins} WHERE plugin_slug = %s",
-            $slug
+        return $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT DISTINCT file_path FROM {$this->table_plugins} WHERE plugin_slug = %s",
+                $slug
+            ),
+            ARRAY_A
         );
-        return $wpdb->get_results($sql, ARRAY_A);
     }
 
     public function get_all_theme_files($slug)
     {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "SELECT DISTINCT file_path FROM {$this->table_themes} WHERE theme_slug = %s",
-            $slug
+        return $wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
+            $wpdb->prepare(
+                "SELECT DISTINCT file_path FROM {$this->table_themes} WHERE theme_slug = %s",
+                $slug
+            ),
+            ARRAY_A
         );
-        return $wpdb->get_results($sql, ARRAY_A);
     }
 
     public function clear_plugin_snapshots($slug)

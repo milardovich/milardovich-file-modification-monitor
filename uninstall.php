@@ -17,17 +17,17 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 global $wpdb;
 
 // Drop the snapshot tables.
-$tables = [
+$wpcg_tables = [
     $wpdb->prefix . 'code_guardian_plugins',
     $wpdb->prefix . 'code_guardian_themes',
 ];
-foreach ($tables as $table) {
+foreach ($wpcg_tables as $wpcg_table) {
     // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is an internal constant, not user input.
-    $wpdb->query("DROP TABLE IF EXISTS {$table}");
+    $wpdb->query("DROP TABLE IF EXISTS {$wpcg_table}");
 }
 
 // Delete plugin options.
-$options = [
+$wpcg_options = [
     'wp_code_guardian_scan_frequency',
     'wp_code_guardian_email_notifications',
     'wp_code_guardian_notification_email',
@@ -36,8 +36,8 @@ $options = [
     'wp_code_guardian_last_check',
     'wp_code_guardian_changes_map',
 ];
-foreach ($options as $option) {
-    delete_option($option);
+foreach ($wpcg_options as $wpcg_option) {
+    delete_option($wpcg_option);
 }
 
 // Delete plugin transients.

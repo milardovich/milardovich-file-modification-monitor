@@ -58,7 +58,10 @@ $files_changed = count($diff_changes);
         <div class="diff-file-body" style="display:none;">
             <div class="diff-view diff-view-unified">
                 <?php foreach ($lines as $l) : ?>
-                    <div class="diff-line <?php echo esc_attr($l['class']); ?>"><?php echo $l['line']; ?></div>
+                    <div class="diff-line <?php echo esc_attr($l['class']); ?>"><?php
+                        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- DiffGenerator::format_for_html() already ran htmlspecialchars() over this; escaping again would render the entities.
+                        echo $l['line'];
+                    ?></div>
                 <?php endforeach; ?>
             </div>
             <div class="diff-view diff-view-split" style="display:none;">

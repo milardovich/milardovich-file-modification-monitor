@@ -5,21 +5,28 @@ use WPCodeGuardian\Core\Logger;
 
 class WordPressOrgDownloader
 {
-    private $temp_dir;
+    private $temp_dir = null;
     private $ignored_extensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'ico', 'pdf', 'zip', 'rar'];
     // Mirrors BaseScanner::$scan_extensions: the baseline must hold exactly
     // the files the disk scan enumerates, or the difference reads as changes.
     private $scan_extensions    = ['php', 'js', 'css', 'json', 'xml', 'html', 'htm', 'txt', 'md'];
 
     /**
-     * Create the downloader, ensuring the working temp directory exists.
+     * Work outside the web root. Extracting a plugin zip under uploads/ would
+     * leave its PHP files reachable over HTTP until cleanup ran, so the
+     * scratch space is the system temp directory instead. Created lazily:
+     * the downloader is constructed on every request, but only the scan path
+     * ever needs somewhere to unpack to.
      */
-    public function __construct()
+    private function temp_dir()
     {
-        $this->temp_dir = trailingslashit(WP_CONTENT_DIR) . 'uploads/wp-code-guardian-temp/';
-        if (!file_exists($this->temp_dir)) {
+        if ($this->temp_dir === null) {
+            $this->temp_dir = trailingslashit(get_temp_dir()) . 'wp-code-guardian/';
+        }
+        if (!is_dir($this->temp_dir)) {
             wp_mkdir_p($this->temp_dir);
         }
+        return $this->temp_dir;
     }
 
     /**
@@ -101,48 +108,42 @@ class WordPressOrgDownloader
      */
     private function download_and_extract($download_url, $slug, $type)
     {
-        $zip_file    = $this->temp_dir . $slug . '-' . $type . '.zip';
-        $extract_dir = $this->temp_dir . $slug . '-' . $type . '/';
+        if (!function_exists('download_url')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
 
-        $response = wp_remote_get($download_url, [
-            'timeout'  => 300,
-            'stream'   => true,
-            'filename' => $zip_file,
-        ]);
-        if (is_wp_error($response)) {
-            Logger::log('zip download failed for ' . $slug . ': ' . $response->get_error_message());
-            if (file_exists($zip_file)) {
-                unlink($zip_file);
-            }
+        // unzip_file() does not bootstrap WP_Filesystem itself; it expects the
+        // caller to have done it, and returns "Could not access filesystem"
+        // otherwise.
+        global $wp_filesystem;
+        if (!($wp_filesystem instanceof \WP_Filesystem_Base) && !WP_Filesystem()) {
+            Logger::log('WP_Filesystem unavailable, cannot unpack ' . $slug);
             return false;
         }
 
-        if (!class_exists('ZipArchive')) {
-            Logger::log('ZipArchive is not available');
-            if (file_exists($zip_file)) {
-                unlink($zip_file);
-            }
+        $extract_dir = $this->temp_dir() . $slug . '-' . $type . '/';
+
+        // download_url() and unzip_file() are core's own routines for this:
+        // they stream to a temp file and unpack through WP_Filesystem, with a
+        // PclZip fallback where ZipArchive is missing.
+        $zip_file = download_url($download_url, 300);
+        if (is_wp_error($zip_file)) {
+            Logger::log('zip download failed for ' . $slug . ': ' . $zip_file->get_error_message());
             return false;
         }
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zip_file) !== true) {
-            Logger::log('could not open zip for ' . $slug);
-            if (file_exists($zip_file)) {
-                unlink($zip_file);
-            }
-            return false;
-        }
-
-        if (file_exists($extract_dir)) {
+        if (is_dir($extract_dir)) {
             $this->delete_directory($extract_dir);
         }
         wp_mkdir_p($extract_dir);
 
-        $zip->extractTo($extract_dir);
-        $zip->close();
-        if (file_exists($zip_file)) {
-            unlink($zip_file);
+        $unzipped = unzip_file($zip_file, $extract_dir);
+        wp_delete_file($zip_file);
+
+        if (is_wp_error($unzipped)) {
+            Logger::log('could not unpack zip for ' . $slug . ': ' . $unzipped->get_error_message());
+            $this->delete_directory($extract_dir);
+            return false;
         }
 
         $entries = array_values(array_diff(scandir($extract_dir) ?: [], ['.', '..']));
@@ -208,16 +209,16 @@ class WordPressOrgDownloader
         if (!is_dir($dir)) {
             return;
         }
-        $items = array_diff(scandir($dir) ?: [], ['.', '..']);
-        foreach ($items as $item) {
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
-            if (is_dir($path)) {
-                $this->delete_directory($path);
-            } else {
-                @unlink($path);
-            }
+        if (!function_exists('WP_Filesystem')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
         }
-        @rmdir($dir);
+        global $wp_filesystem;
+        if (!($wp_filesystem instanceof \WP_Filesystem_Base) && !WP_Filesystem()) {
+            return;
+        }
+        // WP_Filesystem::delete() recurses for us, so there is no manual walk
+        // and no direct rmdir()/unlink() call to justify.
+        $wp_filesystem->delete(trailingslashit($dir), true);
     }
 
     /**

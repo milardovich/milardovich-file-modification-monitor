@@ -179,6 +179,26 @@ abstract class BaseScanner
     }
 
     /**
+     * The WP_Filesystem handle. Writes go through it rather than through
+     * file_put_contents()/unlink() so hosts that are not on a direct
+     * filesystem are handled by WordPress rather than failing silently.
+     *
+     * @return \WP_Filesystem_Base|null Null when it cannot be initialised.
+     */
+    protected function filesystem()
+    {
+        global $wp_filesystem;
+
+        if (!function_exists('WP_Filesystem')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        if (!($wp_filesystem instanceof \WP_Filesystem_Base) && !WP_Filesystem()) {
+            return null;
+        }
+        return $wp_filesystem instanceof \WP_Filesystem_Base ? $wp_filesystem : null;
+    }
+
+    /**
      * Write a baseline file back over the copy on disk, creating any missing
      * directories on the way (a file deleted locally takes its folder with it).
      */
@@ -188,11 +208,19 @@ abstract class BaseScanner
         if ($target === false) {
             return false;
         }
-        $dir = dirname($target);
-        if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+        $filesystem = $this->filesystem();
+        if ($filesystem === null) {
             return false;
         }
-        return file_put_contents($target, $content) !== false;
+        $dir = dirname($target);
+        if (!$filesystem->is_dir($dir) && !wp_mkdir_p($dir)) {
+            return false;
+        }
+        return $filesystem->put_contents(
+            $target,
+            $content,
+            defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : false
+        );
     }
 
     /**
@@ -204,10 +232,14 @@ abstract class BaseScanner
         if ($target === false) {
             return false;
         }
-        if (!file_exists($target)) {
+        $filesystem = $this->filesystem();
+        if ($filesystem === null) {
+            return false;
+        }
+        if (!$filesystem->exists($target)) {
             return true;
         }
-        return unlink($target);
+        return $filesystem->delete($target);
     }
 
     abstract public function scan_all();

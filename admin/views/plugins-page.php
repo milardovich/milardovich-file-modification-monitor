@@ -20,7 +20,7 @@ $plugins        = get_plugins();
                 <th><?php esc_html_e('Plugin', 'wp-code-guardian'); ?></th>
                 <th>
                     <?php esc_html_e('Status', 'wp-code-guardian'); ?>
-                    <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->status_help_text(), __('What do these statuses mean?', 'wp-code-guardian')) : ''; ?>
+                    <?php if ($admin_manager) { $admin_manager->render_help_tip($admin_manager->status_help_text(), __('What do these statuses mean?', 'wp-code-guardian')); } ?>
                 </th>
                 <th><?php esc_html_e('Changes', 'wp-code-guardian'); ?></th>
                 <th><?php esc_html_e('Actions', 'wp-code-guardian'); ?></th>
@@ -55,7 +55,7 @@ $plugins        = get_plugins();
                         <?php esc_html_e('Create baseline first', 'wp-code-guardian'); ?>
                     <?php elseif ($is_modified) : ?>
                         <?php /* translators: %d: number of changed files. */ ?>
-                        <?php printf(esc_html(_n('%d file changed', '%d files changed', $change_count, 'wp-code-guardian')), $change_count); ?>
+                        <?php echo esc_html(sprintf(_n('%d file changed', '%d files changed', $change_count, 'wp-code-guardian'), $change_count)); ?>
                     <?php else : ?>
                         <?php esc_html_e('No changes', 'wp-code-guardian'); ?>
                     <?php endif; ?>

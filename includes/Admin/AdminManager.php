@@ -75,6 +75,19 @@ class AdminManager
     }
 
     /**
+     * Cache-busting version for a bundled asset. The plugin version only
+     * changes at release, so without the file's own mtime an edited
+     * stylesheet keeps being served from the browser cache under the same
+     * ?ver= string.
+     */
+    public static function asset_version($relative_path)
+    {
+        $file = WP_CODE_GUARDIAN_PLUGIN_DIR . ltrim($relative_path, '/');
+        $time = file_exists($file) ? filemtime($file) : false;
+        return $time ? WP_CODE_GUARDIAN_VERSION . '.' . $time : WP_CODE_GUARDIAN_VERSION;
+    }
+
+    /**
      * A small "?" affordance with an explanation attached. "Baseline" is the
      * central idea in this plugin and means nothing to someone opening it for
      * the first time, so every screen that uses the word explains it.
@@ -97,6 +110,18 @@ class AdminManager
             esc_attr($label),
             esc_html($text)
         );
+    }
+
+    /**
+     * Echo a help tip. The views call this rather than echoing help_tip(),
+     * which keeps the escaping inside this class where it can be seen.
+     *
+     * @param string $text  The explanation.
+     * @param string $label Accessible name for the button.
+     */
+    public function render_help_tip($text, $label = '')
+    {
+        echo $this->help_tip($text, $label); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- help_tip() escapes both arguments as it builds the markup.
     }
 
     /**
@@ -359,19 +384,19 @@ class AdminManager
             'wp-code-guardian-admin',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/css/admin.css',
             ['dashicons'],
-            WP_CODE_GUARDIAN_VERSION
+            self::asset_version('assets/css/admin.css')
         );
         wp_enqueue_style(
             'wp-code-guardian-diff',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/css/diff.css',
             [],
-            WP_CODE_GUARDIAN_VERSION
+            self::asset_version('assets/css/diff.css')
         );
         wp_enqueue_script(
             'wp-code-guardian-admin',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/js/admin.js',
             ['jquery'],
-            WP_CODE_GUARDIAN_VERSION,
+            self::asset_version('assets/js/admin.js'),
             true
         );
         wp_localize_script(
@@ -463,7 +488,7 @@ class AdminManager
         if (empty($modified_slugs)) {
             return;
         }
-        $badge_label = esc_js(__('Modified', 'wp-code-guardian'));
+        $badge_label = __('Modified', 'wp-code-guardian');
         ?>
         <script>
         jQuery(function ($) {
@@ -472,7 +497,7 @@ class AdminManager
                 var $card = $('.theme[data-slug="' + slug + '"]');
                 $card.addClass('wp-code-guardian-has-changes');
                 if ($card.find('.wp-code-guardian-badge').length === 0) {
-                    $card.find('.theme-name').append(' <span class="wp-code-guardian-badge"><?php echo $badge_label; ?></span>');
+                    $card.find('.theme-name').append(' <span class="wp-code-guardian-badge"><?php echo esc_js($badge_label); ?></span>');
                 }
             });
         });
@@ -545,16 +570,16 @@ class AdminManager
         if (!in_array($screen->id, $allowed, true)) {
             return;
         }
-        $plugins_url = esc_url(admin_url('admin.php?page=wp-code-guardian-plugins'));
-        $themes_url  = esc_url(admin_url('admin.php?page=wp-code-guardian-themes'));
+        $plugins_url = admin_url('admin.php?page=wp-code-guardian-plugins');
+        $themes_url  = admin_url('admin.php?page=wp-code-guardian-themes');
         $nonce       = wp_create_nonce('wp_code_guardian_dismiss_welcome');
         ?>
         <div class="notice notice-info is-dismissible wp-code-guardian-welcome">
             <h3><?php esc_html_e('Welcome to WP Code Guardian!', 'wp-code-guardian'); ?></h3>
             <p><?php esc_html_e('No baselines exist yet. Create them to start detecting unauthorized code modifications.', 'wp-code-guardian'); ?></p>
             <p>
-                <a href="<?php echo $plugins_url; ?>" class="button button-primary"><?php esc_html_e('Create Plugin Baselines', 'wp-code-guardian'); ?></a>
-                <a href="<?php echo $themes_url; ?>" class="button"><?php esc_html_e('Create Theme Baselines', 'wp-code-guardian'); ?></a>
+                <a href="<?php echo esc_url($plugins_url); ?>" class="button button-primary"><?php esc_html_e('Create Plugin Baselines', 'wp-code-guardian'); ?></a>
+                <a href="<?php echo esc_url($themes_url); ?>" class="button"><?php esc_html_e('Create Theme Baselines', 'wp-code-guardian'); ?></a>
                 <a href="#" class="button wp-code-guardian-dismiss-welcome" data-nonce="<?php echo esc_attr($nonce); ?>"><?php esc_html_e('Dismiss', 'wp-code-guardian'); ?></a>
             </p>
             <script>

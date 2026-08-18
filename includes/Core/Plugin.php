@@ -44,21 +44,15 @@ class Plugin
 
     public function init()
     {
-        $this->load_textdomain();
         $this->register_hooks();
         $this->ensure_tables_exist();
         $this->ensure_scan_scheduled();
         $this->admin_manager->init();
     }
 
-    public function load_textdomain()
-    {
-        load_plugin_textdomain(
-            'wp-code-guardian',
-            false,
-            dirname(WP_CODE_GUARDIAN_PLUGIN_BASENAME) . '/languages'
-        );
-    }
+    // No load_plugin_textdomain() call: since WordPress 4.6 translations load
+    // just in time from the Domain Path declared in the plugin header, and
+    // calling it explicitly is flagged by Plugin Check.
 
     private function register_hooks()
     {
@@ -215,7 +209,7 @@ class Plugin
             'wp-code-guardian-update-warnings',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/js/update-warnings.js',
             ['jquery'],
-            WP_CODE_GUARDIAN_VERSION,
+            AdminManager::asset_version('assets/js/update-warnings.js'),
             true
         );
 
