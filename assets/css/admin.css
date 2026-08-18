@@ -1,0 +1,181 @@
+/* WP Code Guardian admin styles */
+
+.wp-code-guardian-wrap {
+    max-width: 1200px;
+}
+
+.wp-code-guardian-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+@media (max-width: 1200px) {
+    .wp-code-guardian-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 782px) {
+    .wp-code-guardian-stats { grid-template-columns: 1fr; }
+}
+
+.wp-code-guardian-stats .stat-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.wp-code-guardian-stats .stat-card.has-changes {
+    border-color: #ffba00;
+    background: #fff8e5;
+}
+
+.wp-code-guardian-stats .stat-card .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #2271b1;
+}
+
+.wp-code-guardian-stats .stat-card.has-changes .dashicons {
+    color: #b26200;
+}
+
+.wp-code-guardian-stats .stat-card h2 {
+    font-size: 32px;
+    margin: 8px 0 4px;
+}
+
+.wp-code-guardian-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 20px 0;
+}
+
+.wp-code-guardian-info {
+    background: #e7f3fa;
+    border-left: 4px solid #2271b1;
+    padding: 10px 12px;
+    margin-top: 16px;
+}
+
+.wp-code-guardian-info .dashicons {
+    color: #2271b1;
+    vertical-align: middle;
+}
+
+/* Status badges */
+.wp-code-guardian-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.wp-code-guardian-status.clean       { background: #e6f6ea; color: #1d6f3b; }
+.wp-code-guardian-status.modified    { background: #fff4d6; color: #8a5800; }
+.wp-code-guardian-status.no-baseline { background: #e7f3fa; color: #0a4b78; }
+
+.wp-code-guardian-status .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Inline plugins.php warning row */
+.wp-code-guardian-changes .plugin-update {
+    padding: 0;
+}
+
+.wp-code-guardian-changes .notice {
+    margin: 0;
+    border-left-width: 4px;
+}
+
+/* Theme card badge */
+.wp-code-guardian-badge {
+    display: inline-block;
+    background: #ffba00;
+    color: #2c1d00;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+.theme.wp-code-guardian-has-changes {
+    outline: 2px solid #ffba00;
+}
+
+/* Plugin row meta indicator */
+.wp-code-guardian-indicator {
+    display: inline-block;
+    background: #ffba00;
+    color: #2c1d00;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+/* Legacy fallback modal */
+.wp-code-guardian-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100000;
+    display: none;
+}
+
+.wp-code-guardian-modal.open {
+    display: block;
+}
+
+/* WP media-modal skins */
+#wp-code-guardian-modal .media-modal {
+    width: 90%;
+    max-width: 1100px;
+    height: 90%;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#wp-code-guardian-modal .media-modal-content {
+    background: #fff;
+}
+
+#wp-code-guardian-modal.update-warning .media-frame-title {
+    background: #d63638;
+    color: #fff;
+}
+
+#wp-code-guardian-admin-modal .media-modal {
+    width: 480px;
+    height: auto;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#wp-code-guardian-admin-modal .media-frame-title {
+    background: #2271b1;
+    color: #fff;
+}
+
+body.modal-open { overflow: hidden; }
+
+@media (max-width: 782px) {
+    #wp-code-guardian-modal .media-modal,
+    #wp-code-guardian-admin-modal .media-modal {
+        width: 96%;
+        max-width: 96%;
+    }
+}

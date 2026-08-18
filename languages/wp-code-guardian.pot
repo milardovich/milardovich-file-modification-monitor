@@ -1,0 +1,410 @@
+# Copyright (C) 2026 Sergio Milardovich
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Code Guardian 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-code-guardian\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-28T21:49:28+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wp-code-guardian\n"
+
+#. Plugin Name of the plugin
+#: wp-code-guardian.php
+#: admin/views/main-page.php:39
+msgid "WP Code Guardian"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-code-guardian.php
+msgid "https://milardovich.com.ar/plugins/wp-code-guardian"
+msgstr ""
+
+#. Description of the plugin
+#: wp-code-guardian.php
+msgid "Detects local code modifications in installed plugins and themes by comparing files against pristine copies from WordPress.org, and warns before updates would overwrite them."
+msgstr ""
+
+#. Author of the plugin
+#: wp-code-guardian.php
+msgid "Sergio Milardovich"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-code-guardian.php
+msgid "https://milardovich.com.ar"
+msgstr ""
+
+#. translators: 1: number of files changed, 2: number of added lines, 3: number of removed lines.
+#: admin/views/diff-modal.php:27
+#, php-format
+msgid "%1$d file changed, %2$d addition(+), %3$d deletion(-)"
+msgid_plural "%1$d files changed, %2$d additions(+), %3$d deletions(-)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/diff-modal.php:41
+msgid "New"
+msgstr ""
+
+#: admin/views/diff-modal.php:41
+msgid "Deleted"
+msgstr ""
+
+#: admin/views/diff-modal.php:41
+#: admin/views/diff-modal.php:70
+#: admin/views/plugins-page.php:45
+#: admin/views/themes-page.php:46
+#: includes/Admin/AdminManager.php:304
+#: includes/Admin/AdminManager.php:329
+msgid "Modified"
+msgstr ""
+
+#: admin/views/diff-modal.php:51
+msgid "Show Changes"
+msgstr ""
+
+#: admin/views/diff-modal.php:54
+msgid "Unified"
+msgstr ""
+
+#: admin/views/diff-modal.php:55
+msgid "Split"
+msgstr ""
+
+#: admin/views/diff-modal.php:66
+msgid "Original"
+msgstr ""
+
+#: admin/views/main-page.php:40
+msgid "Detect unauthorized modifications in plugins and themes by comparing them against pristine copies from WordPress.org."
+msgstr ""
+
+#: admin/views/main-page.php:46
+msgid "Plugin baselines"
+msgstr ""
+
+#: admin/views/main-page.php:51
+msgid "Modified plugins"
+msgstr ""
+
+#: admin/views/main-page.php:56
+msgid "Theme baselines"
+msgstr ""
+
+#: admin/views/main-page.php:61
+msgid "Modified themes"
+msgstr ""
+
+#: admin/views/main-page.php:66
+msgid "Quick Actions"
+msgstr ""
+
+#: admin/views/main-page.php:68
+msgid "Scan All Items"
+msgstr ""
+
+#: admin/views/main-page.php:69
+#: includes/Admin/AdminManager.php:58
+msgid "Settings"
+msgstr ""
+
+#: admin/views/main-page.php:74
+msgid "How It Works"
+msgstr ""
+
+#: admin/views/main-page.php:76
+msgid "Create baselines by downloading original plugin and theme files from WordPress.org."
+msgstr ""
+
+#: admin/views/main-page.php:77
+msgid "WP Code Guardian compares the files on disk against the baseline using SHA-256 hashes."
+msgstr ""
+
+#: admin/views/main-page.php:78
+msgid "Modified plugins and themes are flagged in the WordPress admin, including a warning before any update."
+msgstr ""
+
+#: admin/views/main-page.php:79
+msgid "After an authorized update, the baseline is regenerated automatically."
+msgstr ""
+
+#: admin/views/main-page.php:83
+msgid "Baselines come from WordPress.org, not from the current files on disk — that is what makes drift detectable."
+msgstr ""
+
+#: admin/views/plugins-page.php:13
+#: includes/Admin/AdminManager.php:56
+msgid "Plugin Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:15
+msgid "Scan All Plugins"
+msgstr ""
+
+#: admin/views/plugins-page.php:20
+msgid "Plugin"
+msgstr ""
+
+#: admin/views/plugins-page.php:21
+#: admin/views/themes-page.php:18
+msgid "Status"
+msgstr ""
+
+#: admin/views/plugins-page.php:22
+#: admin/views/themes-page.php:19
+msgid "Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:23
+#: admin/views/themes-page.php:20
+msgid "Actions"
+msgstr ""
+
+#: admin/views/plugins-page.php:43
+#: admin/views/themes-page.php:44
+msgid "No Baseline"
+msgstr ""
+
+#: admin/views/plugins-page.php:47
+#: admin/views/themes-page.php:48
+msgid "Clean"
+msgstr ""
+
+#: admin/views/plugins-page.php:52
+#: admin/views/themes-page.php:53
+msgid "Create baseline first"
+msgstr ""
+
+#. translators: %d: number of changed files.
+#: admin/views/plugins-page.php:55
+#: admin/views/themes-page.php:56
+#, php-format
+msgid "%d file changed"
+msgid_plural "%d files changed"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/plugins-page.php:57
+#: admin/views/themes-page.php:58
+msgid "No changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:62
+#: admin/views/themes-page.php:63
+msgid "Create Baseline"
+msgstr ""
+
+#: admin/views/plugins-page.php:64
+#: admin/views/themes-page.php:65
+#: includes/Admin/AdminManager.php:226
+#: includes/Admin/AdminManager.php:277
+msgid "View Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:65
+#: admin/views/themes-page.php:66
+#: includes/Admin/AdminManager.php:279
+msgid "Accept Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:67
+#: admin/views/themes-page.php:68
+msgid "Update Baseline"
+msgstr ""
+
+#: admin/views/settings-page.php:10
+msgid "Disabled"
+msgstr ""
+
+#: admin/views/settings-page.php:11
+msgid "Hourly"
+msgstr ""
+
+#: admin/views/settings-page.php:12
+msgid "Twice Daily"
+msgstr ""
+
+#: admin/views/settings-page.php:13
+msgid "Daily"
+msgstr ""
+
+#: admin/views/settings-page.php:14
+msgid "Weekly"
+msgstr ""
+
+#: admin/views/settings-page.php:18
+msgid "WP Code Guardian Settings"
+msgstr ""
+
+#: admin/views/settings-page.php:23
+msgid "Scan Frequency"
+msgstr ""
+
+#: admin/views/settings-page.php:30
+msgid "How often to check for code changes on admin page loads."
+msgstr ""
+
+#: admin/views/settings-page.php:34
+msgid "Email Notifications"
+msgstr ""
+
+#: admin/views/settings-page.php:38
+msgid "Send email when code changes are detected"
+msgstr ""
+
+#: admin/views/settings-page.php:43
+msgid "Notification Email"
+msgstr ""
+
+#: admin/views/settings-page.php:49
+msgid "Ignored Files"
+msgstr ""
+
+#: admin/views/settings-page.php:52
+msgid "One pattern per line."
+msgstr ""
+
+#: admin/views/settings-page.php:56
+msgid "Show Warnings"
+msgstr ""
+
+#: admin/views/settings-page.php:60
+msgid "Show update warnings on plugins/themes/update screens"
+msgstr ""
+
+#: admin/views/settings-page.php:70
+msgid "Maintenance"
+msgstr ""
+
+#: admin/views/settings-page.php:72
+msgid "Clear All Snapshots"
+msgstr ""
+
+#: admin/views/settings-page.php:73
+msgid "Rescan All Plugins &amp; Themes"
+msgstr ""
+
+#: admin/views/themes-page.php:10
+#: includes/Admin/AdminManager.php:57
+msgid "Theme Changes"
+msgstr ""
+
+#: admin/views/themes-page.php:12
+msgid "Scan All Themes"
+msgstr ""
+
+#: admin/views/themes-page.php:17
+msgid "Theme"
+msgstr ""
+
+#: admin/views/themes-page.php:34
+msgid "Active"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:47
+#: includes/Admin/AdminManager.php:48
+#: includes/Admin/AdminManager.php:55
+msgid "Code Guardian"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:55
+msgid "Dashboard"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:227
+msgid "Refresh Baseline"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:228
+msgid "Are you sure you want to refresh the baseline? This will overwrite the stored snapshot."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:229
+msgid "Loading…"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:230
+msgid "An error occurred."
+msgstr ""
+
+#. translators: %d: number of modified files.
+#: includes/Admin/AdminManager.php:267
+#, php-format
+msgid "Code changes detected: %d file has been modified."
+msgid_plural "Code changes detected: %d files have been modified."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Admin/AdminManager.php:362
+msgid "Code Guardian Alert:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:364
+msgid "Plugins with custom modifications:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:367
+msgid "Themes with custom modifications:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:370
+msgid "Updating these items will overwrite your custom changes."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:371
+msgid "Review changes before updating"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:395
+msgid "Welcome to WP Code Guardian!"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:396
+msgid "No baselines exist yet. Create them to start detecting unauthorized code modifications."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:398
+msgid "Create Plugin Baselines"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:399
+msgid "Create Theme Baselines"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:400
+msgid "Dismiss"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:436
+msgid "No changes detected."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:469
+msgid "Baseline created/updated successfully from WordPress.org"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:470
+msgid "Baseline updated from current files"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:504
+msgid "Scan completed successfully"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:521
+msgid "All snapshots cleared successfully"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:535
+msgid "Rescan completed successfully"
+msgstr ""
+
+#: includes/Core/Plugin.php:149
+msgid "⚠️ Code Changes Detected! This item has custom modifications that will be lost during the update."
+msgstr ""
