@@ -51,12 +51,84 @@ class ThemeScanner extends BaseScanner
 
         Logger::log('Could not download from WordPress.org, using current files for ' . $theme_slug);
 
-        $dir   = $theme->get_stylesheet_directory();
-        $files = $this->scan_directory($dir, $dir);
-        foreach ($files as $f) {
+        $this->snapshot_from_disk($theme_slug, $version);
+        return true;
+    }
+
+    /**
+     * Store the files currently on disk as the baseline.
+     */
+    private function snapshot_from_disk($theme_slug, $version = '')
+    {
+        $theme = wp_get_theme($theme_slug);
+        if (!$theme->exists()) {
+            return;
+        }
+        $dir = $theme->get_stylesheet_directory();
+        foreach ($this->scan_directory($dir, $dir) as $f) {
             $this->storage->save_theme_snapshot($theme_slug, $f['path'], $f['content'], $version);
         }
+    }
+
+    /**
+     * Adopt the current files as the baseline. See the note on
+     * PluginScanner::accept_changes() about how this differs from
+     * refresh_snapshot().
+     */
+    public function accept_changes($theme_slug)
+    {
+        $theme = wp_get_theme($theme_slug);
+        if (!$theme->exists()) {
+            return false;
+        }
+        $this->storage->clear_theme_snapshots($theme_slug);
+        $this->snapshot_from_disk($theme_slug, (string) $theme->get('Version'));
+        Logger::log('Accepted local changes as the new baseline for ' . $theme_slug);
         return true;
+    }
+
+    /**
+     * Put the baseline copy back on disk. Destructive by design -- the caller
+     * confirms first.
+     */
+    public function restore_from_baseline($theme_slug)
+    {
+        $theme = wp_get_theme($theme_slug);
+        if (!$theme->exists()) {
+            return ['restored' => 0, 'removed' => 0, 'failed' => 0];
+        }
+        $base_dir = $theme->get_stylesheet_directory();
+        $result   = ['restored' => 0, 'removed' => 0, 'failed' => 0];
+
+        list($disk_files, $stored_hashes) = $this->gather_for_comparison($theme_slug);
+
+        foreach ($this->detect_changed_paths($disk_files, $stored_hashes) as $path) {
+            if (isset($stored_hashes[$path])) {
+                $snapshot = $this->storage->get_theme_snapshot($theme_slug, $path);
+                if (!$snapshot) {
+                    $result['failed']++;
+                    continue;
+                }
+                if ($this->write_baseline_file($base_dir, $path, $snapshot['file_content'])) {
+                    $result['restored']++;
+                } else {
+                    $result['failed']++;
+                }
+            } elseif ($this->delete_local_file($base_dir, $path)) {
+                $result['removed']++;
+            } else {
+                $result['failed']++;
+            }
+        }
+
+        Logger::log(sprintf(
+            'Restored %s from baseline: %d rewritten, %d removed, %d failed',
+            $theme_slug,
+            $result['restored'],
+            $result['removed'],
+            $result['failed']
+        ));
+        return $result;
     }
 
     public function has_changes($theme_slug)

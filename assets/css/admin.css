@@ -138,46 +138,155 @@
     display: block;
 }
 
-/* WP media-modal skins */
-#wp-code-guardian-modal .media-modal {
-    width: 90%;
-    max-width: 1100px;
-    height: 90%;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
+/* Modal -------------------------------------------------------------
+   Self-contained on purpose. These class names come from core's media
+   frame, but core's stylesheet lays them out as a full-height media
+   library: title and toolbar pinned by absolute positioning, content
+   stretched between them. Applied to a short confirm dialog that reads as
+   a detached header floating above a tall empty box, so the layout below
+   is ours and core's media-views stylesheet is not loaded. */
+
+.wp-code-guardian-media-modal {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 160000;
+    display: none;
+    box-sizing: border-box;
+    padding: 32px 16px;
 }
 
-#wp-code-guardian-modal .media-modal-content {
+.wp-code-guardian-media-modal.is-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wp-code-guardian-media-modal .media-modal-backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, .7);
+}
+
+.wp-code-guardian-media-modal .media-modal {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    max-height: 100%;
     background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, .35);
+    overflow: hidden;
+}
+
+/* The diff viewer needs the room; the confirm dialog does not. */
+#wp-code-guardian-modal .media-modal {
+    max-width: 1100px;
+}
+
+.wp-code-guardian-media-modal .media-frame-title {
+    flex: 0 0 auto;
+    padding: 14px 52px 14px 20px;
+    background: #f6f7f7;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.wp-code-guardian-media-modal .media-frame-title h1 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 600;
+    color: #1d2327;
+    overflow-wrap: break-word;
 }
 
 #wp-code-guardian-modal.update-warning .media-frame-title {
     background: #d63638;
+    border-bottom-color: #d63638;
+}
+
+#wp-code-guardian-modal.update-warning .media-frame-title h1 {
     color: #fff;
 }
 
-#wp-code-guardian-admin-modal .media-modal {
-    width: 480px;
-    height: auto;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
+.wp-code-guardian-media-modal .media-frame-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 20px;
 }
 
-#wp-code-guardian-admin-modal .media-frame-title {
-    background: #2271b1;
+.wp-code-guardian-media-modal .media-frame-content > p:first-child {
+    margin-top: 0;
+}
+
+.wp-code-guardian-media-modal .media-frame-content > p:last-child {
+    margin-bottom: 0;
+}
+
+.wp-code-guardian-media-modal .media-frame-toolbar {
+    flex: 0 0 auto;
+    padding: 12px 20px;
+    background: #f6f7f7;
+    border-top: 1px solid #dcdcde;
+}
+
+.wp-code-guardian-media-modal .media-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.wp-code-guardian-media-modal .media-modal-close {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 3px;
+    color: #646970;
+    cursor: pointer;
+}
+
+.wp-code-guardian-media-modal .media-modal-close:hover,
+.wp-code-guardian-media-modal .media-modal-close:focus {
+    background: rgba(0, 0, 0, .07);
+    color: #1d2327;
+}
+
+#wp-code-guardian-modal.update-warning .media-modal-close {
     color: #fff;
 }
 
-body.modal-open { overflow: hidden; }
+#wp-code-guardian-modal.update-warning .media-modal-close:hover,
+#wp-code-guardian-modal.update-warning .media-modal-close:focus {
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+}
 
-@media (max-width: 782px) {
-    #wp-code-guardian-modal .media-modal,
-    #wp-code-guardian-admin-modal .media-modal {
-        width: 96%;
-        max-width: 96%;
-    }
+.wp-code-guardian-media-modal .media-modal-icon::before {
+    content: "\f335"; /* dashicons-no-alt */
+    display: block;
+    font-family: dashicons;
+    font-size: 20px;
+    line-height: 32px;
+}
+
+#wp-code-guardian-admin-modal {
+    z-index: 160010;
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 /* Batch scan progress */

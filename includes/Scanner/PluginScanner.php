@@ -60,7 +60,19 @@ class PluginScanner extends BaseScanner
 
         Logger::log('Could not download from WordPress.org, using current files for ' . $plugin_slug);
 
-        // Fallback: snapshot current disk contents.
+        $this->snapshot_from_disk($plugin_file, $version);
+        return true;
+    }
+
+    /**
+     * Store the files currently on disk as the baseline. Used as the fallback
+     * when WordPress.org has nothing for us, and by accept_changes().
+     */
+    private function snapshot_from_disk($plugin_file, $version = '')
+    {
+        $plugin_slug = $this->downloader->get_plugin_slug_from_file($plugin_file);
+        $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
+
         if (dirname($plugin_file) === '.' || dirname($plugin_file) === '') {
             // Single-file plugin
             if (file_exists($plugin_path)) {
@@ -71,14 +83,86 @@ class PluginScanner extends BaseScanner
                     $version
                 );
             }
-        } else {
-            $dir   = WP_PLUGIN_DIR . '/' . dirname($plugin_file);
-            $files = $this->scan_directory($dir, $dir);
-            foreach ($files as $f) {
-                $this->storage->save_plugin_snapshot($plugin_slug, $f['path'], $f['content'], $version);
+            return;
+        }
+        $dir = WP_PLUGIN_DIR . '/' . dirname($plugin_file);
+        foreach ($this->scan_directory($dir, $dir) as $f) {
+            $this->storage->save_plugin_snapshot($plugin_slug, $f['path'], $f['content'], $version);
+        }
+    }
+
+    private function get_base_dir($plugin_file)
+    {
+        if (dirname($plugin_file) === '.' || dirname($plugin_file) === '') {
+            return WP_PLUGIN_DIR;
+        }
+        return WP_PLUGIN_DIR . '/' . dirname($plugin_file);
+    }
+
+    /**
+     * Adopt the current files as the baseline, so the local edits stop being
+     * reported. Note this is NOT what refresh_snapshot() does: that one goes
+     * back to WordPress.org and would flag the same edits again.
+     */
+    public function accept_changes($plugin_file)
+    {
+        if (!function_exists('get_plugin_data')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $plugin_slug = $this->downloader->get_plugin_slug_from_file($plugin_file);
+        $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
+        $version     = '';
+        if (file_exists($plugin_path)) {
+            $data    = get_plugin_data($plugin_path, false, false);
+            $version = isset($data['Version']) ? $data['Version'] : '';
+        }
+
+        $this->storage->clear_plugin_snapshots($plugin_slug);
+        $this->snapshot_from_disk($plugin_file, $version);
+        Logger::log('Accepted local changes as the new baseline for ' . $plugin_slug);
+        return true;
+    }
+
+    /**
+     * Put the baseline copy back on disk: modified files are overwritten,
+     * files deleted locally are recreated, and files added locally are
+     * removed. Destructive by design -- the caller confirms first.
+     */
+    public function restore_from_baseline($plugin_file)
+    {
+        $plugin_slug = $this->downloader->get_plugin_slug_from_file($plugin_file);
+        $base_dir    = $this->get_base_dir($plugin_file);
+        $result      = ['restored' => 0, 'removed' => 0, 'failed' => 0];
+
+        list($disk_files, $stored_hashes) = $this->gather_for_comparison($plugin_file);
+
+        foreach ($this->detect_changed_paths($disk_files, $stored_hashes) as $path) {
+            if (isset($stored_hashes[$path])) {
+                $snapshot = $this->storage->get_plugin_snapshot($plugin_slug, $path);
+                if (!$snapshot) {
+                    $result['failed']++;
+                    continue;
+                }
+                if ($this->write_baseline_file($base_dir, $path, $snapshot['file_content'])) {
+                    $result['restored']++;
+                } else {
+                    $result['failed']++;
+                }
+            } elseif ($this->delete_local_file($base_dir, $path)) {
+                $result['removed']++;
+            } else {
+                $result['failed']++;
             }
         }
-        return true;
+
+        Logger::log(sprintf(
+            'Restored %s from baseline: %d rewritten, %d removed, %d failed',
+            $plugin_slug,
+            $result['restored'],
+            $result['removed'],
+            $result['failed']
+        ));
+        return $result;
     }
 
     public function has_changes($plugin_file)

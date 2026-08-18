@@ -45,6 +45,8 @@ class AdminManager
         add_action('wp_ajax_wp_code_guardian_scan_queue', [$this, 'ajax_scan_queue']);
         add_action('wp_ajax_wp_code_guardian_scan_item', [$this, 'ajax_scan_item']);
         add_action('wp_ajax_wp_code_guardian_scan_finish', [$this, 'ajax_scan_finish']);
+        add_action('wp_ajax_wp_code_guardian_accept_changes', [$this, 'ajax_accept_changes']);
+        add_action('wp_ajax_wp_code_guardian_restore_original', [$this, 'ajax_restore_original']);
         add_action('wp_ajax_wp_code_guardian_dismiss_welcome', [$this, 'ajax_dismiss_welcome']);
 
         add_filter('plugin_row_meta', [$this, 'add_plugin_row_meta'], 10, 2);
@@ -308,15 +310,12 @@ class AdminManager
         if (!$is_guardian && !$is_wp_page) {
             return;
         }
-        // The diff modal is built out of core's .media-modal markup, which is
-        // positioned by this stylesheet. Without it the modal renders as an
-        // unstyled block at the foot of the page and clicking "View Changes"
-        // looks like it does nothing at all.
-        wp_enqueue_style('media-views');
+        // The modal is laid out entirely by admin.css (see the Modal section
+        // there); dashicons supplies its close glyph.
         wp_enqueue_style(
             'wp-code-guardian-admin',
             WP_CODE_GUARDIAN_PLUGIN_URL . 'assets/css/admin.css',
-            ['media-views'],
+            ['dashicons'],
             WP_CODE_GUARDIAN_VERSION
         );
         wp_enqueue_style(
@@ -354,6 +353,15 @@ class AdminManager
                     'scan_done'        => __('Done. Reloading…', 'wp-code-guardian'),
                     /* translators: %d: number of items that could not be scanned. */
                     'scan_failed'      => __('%d item(s) could not be scanned.', 'wp-code-guardian'),
+                    'close'            => __('Close', 'wp-code-guardian'),
+                    'keep_changes'     => __('Keep My Changes', 'wp-code-guardian'),
+                    'restore_original' => __('Restore Original', 'wp-code-guardian'),
+                    'keep_title'       => __('Keep your changes?', 'wp-code-guardian'),
+                    'keep_confirm'     => __('The files on disk become the new baseline, so these changes stop being reported. Nothing on disk is touched.', 'wp-code-guardian'),
+                    'restore_title'    => __('Restore the original files?', 'wp-code-guardian'),
+                    /* translators: %d: number of affected files. */
+                    'restore_confirm'  => __('This overwrites %d file(s) on disk with the original version from the baseline. Your changes to them will be lost and this cannot be undone.', 'wp-code-guardian'),
+                    'working'          => __('Working…', 'wp-code-guardian'),
                 ],
             ]
         );
@@ -392,7 +400,7 @@ class AdminManager
                         &nbsp;
                         <a href="#" class="wp-code-guardian-view-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('View Changes', 'wp-code-guardian'); ?></a>
                         &nbsp;|&nbsp;
-                        <a href="#" class="wp-code-guardian-refresh-snapshot" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'wp-code-guardian'); ?></a>
+                        <a href="#" class="wp-code-guardian-keep-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'wp-code-guardian'); ?></a>
                     </p>
                 </div>
             </td>
@@ -636,6 +644,80 @@ class AdminManager
             wp_send_json_success(['message' => __('Rescan completed successfully', 'wp-code-guardian')]);
         } catch (\Exception $e) {
             Logger::log('ajax_rescan_all: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Adopt the files on disk as the baseline: the local edits are kept and
+     * stop being reported. The counterpart to ajax_restore_original().
+     */
+    public function ajax_accept_changes()
+    {
+        try {
+            $this->verify_ajax_request();
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+
+            if ($type === 'plugin') {
+                $this->plugin_scanner->accept_changes($item);
+            } elseif ($type === 'theme') {
+                $this->theme_scanner->accept_changes($item);
+            } else {
+                wp_send_json_error('Unknown type');
+                return;
+            }
+            $this->invalidate_changes_map();
+            $this->run_scan();
+            wp_send_json_success([
+                'message' => __('Your changes are now the baseline.', 'wp-code-guardian'),
+            ]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_accept_changes: ' . $e->getMessage());
+            wp_send_json_error('Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Write the baseline copy back over the files on disk, discarding the
+     * local edits. Destructive, so the browser confirms before calling.
+     */
+    public function ajax_restore_original()
+    {
+        try {
+            $this->verify_ajax_request();
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+
+            if ($type === 'plugin') {
+                $result = $this->plugin_scanner->restore_from_baseline($item);
+            } elseif ($type === 'theme') {
+                $result = $this->theme_scanner->restore_from_baseline($item);
+            } else {
+                wp_send_json_error('Unknown type');
+                return;
+            }
+            $this->invalidate_changes_map();
+            $this->run_scan();
+
+            if (!empty($result['failed'])) {
+                wp_send_json_error(sprintf(
+                    /* translators: %d: number of files that could not be written. */
+                    __('%d file(s) could not be written. Check the file permissions.', 'wp-code-guardian'),
+                    (int) $result['failed']
+                ));
+                return;
+            }
+            wp_send_json_success([
+                'message' => sprintf(
+                    /* translators: 1: files rewritten, 2: files removed. */
+                    __('Restored the original files: %1$d rewritten, %2$d removed.', 'wp-code-guardian'),
+                    (int) $result['restored'],
+                    (int) $result['removed']
+                ),
+            ]);
+        } catch (\Exception $e) {
+            Logger::log('ajax_restore_original: ' . $e->getMessage());
             wp_send_json_error('Error: ' . $e->getMessage());
         }
     }

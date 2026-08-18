@@ -8,7 +8,7 @@ jQuery(document).ready(function ($) {
             return $('#' + id);
         }
         var html = '' +
-            '<div id="' + id + '" class="wp-code-guardian-media-modal' + (extraClass ? ' ' + extraClass : '') + '" style="display:none;">' +
+            '<div id="' + id + '" class="wp-code-guardian-media-modal' + (extraClass ? ' ' + extraClass : '') + '">' +
                 '<div class="media-modal-backdrop"></div>' +
                 '<div class="media-modal wp-core-ui">' +
                     '<button type="button" class="media-modal-close"><span class="media-modal-icon"></span><span class="screen-reader-text">Close</span></button>' +
@@ -25,15 +25,17 @@ jQuery(document).ready(function ($) {
         return $modal;
     }
 
+    // Visibility rides on a class rather than .show()/.hide(): those write an
+    // inline display:block, which would beat the stylesheet's flex centring.
     function showModal($modal, title, content) {
         $modal.find('.media-frame-title h1').text(title);
         $modal.find('.media-frame-content').html(content);
-        $modal.show();
+        $modal.addClass('is-open');
         $('body').addClass('modal-open');
     }
 
     function hideModal($modal) {
-        $modal.hide();
+        $modal.removeClass('is-open');
         $('body').removeClass('modal-open');
     }
 
@@ -77,12 +79,87 @@ jQuery(document).ready(function ($) {
             if (resp && resp.success) {
                 showModal($modal, item, resp.data.html);
                 initDiffViewers();
+                setDiffActions($modal, type, item, (resp.data.changes || []).length);
             } else {
                 $modal.find('.media-frame-content').html('<p>' + (resp && resp.data ? resp.data : wpCodeGuardian.strings.error) + '</p>');
             }
         }).fail(function () {
             $modal.find('.media-frame-content').html('<p>' + wpCodeGuardian.strings.error + '</p>');
         });
+    });
+
+    // The diff modal's footer offers the two ways out of a detected change:
+    // adopt the edits as the new baseline, or put the original files back.
+    function setDiffActions($modal, type, item, count) {
+        var $primary = $modal.find('.media-toolbar-primary').empty();
+        $modal.find('.wp-code-guardian-modal-cancel').text(wpCodeGuardian.strings.close);
+        if (!count) {
+            return;
+        }
+        $primary.append(
+            $('<button type="button" class="button wp-code-guardian-keep-changes">')
+                .text(wpCodeGuardian.strings.keep_changes)
+                .attr({ 'data-type': type, 'data-item': item }),
+            $('<button type="button" class="button button-primary wp-code-guardian-restore-original">')
+                .text(wpCodeGuardian.strings.restore_original)
+                .attr({ 'data-type': type, 'data-item': item, 'data-count': count })
+        );
+    }
+
+    function runItemAction(action, type, item, $btn) {
+        var $toolbar = $btn.closest('.media-toolbar');
+        $toolbar.find('button').prop('disabled', true);
+        $btn.text(wpCodeGuardian.strings.working);
+        $.post(wpCodeGuardian.ajax_url, {
+            action: action,
+            type: type,
+            item: item,
+            nonce: wpCodeGuardian.nonce
+        }).done(function (resp) {
+            if (resp && resp.success) {
+                window.location.reload();
+                return;
+            }
+            $toolbar.find('button').prop('disabled', false);
+            alert(resp && resp.data ? resp.data : wpCodeGuardian.strings.error);
+        }).fail(function () {
+            $toolbar.find('button').prop('disabled', false);
+            alert(wpCodeGuardian.strings.error);
+        });
+    }
+
+    $(document).on('click', '.wp-code-guardian-keep-changes', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        showAdminModal(
+            wpCodeGuardian.strings.keep_title,
+            wpCodeGuardian.strings.keep_confirm,
+            function () {
+                runItemAction(
+                    'wp_code_guardian_accept_changes',
+                    $btn.data('type'),
+                    $btn.data('item'),
+                    $btn
+                );
+            }
+        );
+    });
+
+    $(document).on('click', '.wp-code-guardian-restore-original', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        showAdminModal(
+            wpCodeGuardian.strings.restore_title,
+            wpCodeGuardian.strings.restore_confirm.replace('%d', $btn.data('count')),
+            function () {
+                runItemAction(
+                    'wp_code_guardian_restore_original',
+                    $btn.data('type'),
+                    $btn.data('item'),
+                    $btn
+                );
+            }
+        );
     });
 
     // Refresh / create snapshot

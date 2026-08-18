@@ -152,6 +152,64 @@ abstract class BaseScanner
         return $filtered;
     }
 
+    /**
+     * Reject anything that would write outside the item's own directory or
+     * touch a file type the scanner does not track. Relative paths come out
+     * of the database, and the item they belong to comes from a request, so
+     * neither is trusted here.
+     *
+     * @return string|false Absolute path, or false when it is not safe.
+     */
+    protected function resolve_writable_path($base_dir, $rel_path)
+    {
+        if ($rel_path === '' || !$this->should_scan_file($rel_path)) {
+            return false;
+        }
+        $segments = preg_split('#[/\\\\]+#', $rel_path);
+        foreach ($segments as $segment) {
+            if ($segment === '..' || $segment === '') {
+                return false;
+            }
+        }
+        $base = realpath($base_dir);
+        if ($base === false) {
+            return false;
+        }
+        return $base . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $segments);
+    }
+
+    /**
+     * Write a baseline file back over the copy on disk, creating any missing
+     * directories on the way (a file deleted locally takes its folder with it).
+     */
+    protected function write_baseline_file($base_dir, $rel_path, $content)
+    {
+        $target = $this->resolve_writable_path($base_dir, $rel_path);
+        if ($target === false) {
+            return false;
+        }
+        $dir = dirname($target);
+        if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+            return false;
+        }
+        return file_put_contents($target, $content) !== false;
+    }
+
+    /**
+     * Remove a file that exists on disk but not in the baseline.
+     */
+    protected function delete_local_file($base_dir, $rel_path)
+    {
+        $target = $this->resolve_writable_path($base_dir, $rel_path);
+        if ($target === false) {
+            return false;
+        }
+        if (!file_exists($target)) {
+            return true;
+        }
+        return unlink($target);
+    }
+
     abstract public function scan_all();
     abstract public function create_snapshot($item);
     abstract public function has_changes($item);

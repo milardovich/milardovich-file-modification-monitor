@@ -62,7 +62,7 @@ $plugins        = get_plugins();
                         <button type="button" class="button button-primary wp-code-guardian-refresh-snapshot" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Create Baseline', 'wp-code-guardian'); ?></button>
                     <?php elseif ($is_modified) : ?>
                         <button type="button" class="button wp-code-guardian-view-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('View Changes', 'wp-code-guardian'); ?></button>
-                        <button type="button" class="button wp-code-guardian-refresh-snapshot" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'wp-code-guardian'); ?></button>
+                        <button type="button" class="button wp-code-guardian-keep-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'wp-code-guardian'); ?></button>
                     <?php else : ?>
                         <button type="button" class="button wp-code-guardian-refresh-snapshot" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Update Baseline', 'wp-code-guardian'); ?></button>
                     <?php endif; ?>
