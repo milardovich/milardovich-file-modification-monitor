@@ -74,6 +74,49 @@ class AdminManager
         add_submenu_page('wp-code-guardian', __('Settings', 'wp-code-guardian'), __('Settings', 'wp-code-guardian'), 'manage_options', 'wp-code-guardian-settings', [$this, 'render_settings_page']);
     }
 
+    /**
+     * A small "?" affordance with an explanation attached. "Baseline" is the
+     * central idea in this plugin and means nothing to someone opening it for
+     * the first time, so every screen that uses the word explains it.
+     *
+     * @param string $text  The explanation.
+     * @param string $label Accessible name for the button.
+     */
+    public function help_tip($text, $label = '')
+    {
+        if ($label === '') {
+            $label = __('More information', 'wp-code-guardian');
+        }
+        return sprintf(
+            '<span class="wp-code-guardian-tip">'
+                . '<button type="button" class="wp-code-guardian-tip-toggle" aria-expanded="false" aria-label="%1$s">'
+                    . '<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>'
+                . '</button>'
+                . '<span class="wp-code-guardian-tip-text" role="tooltip">%2$s</span>'
+            . '</span>',
+            esc_attr($label),
+            esc_html($text)
+        );
+    }
+
+    /**
+     * Kept in one place so every screen explains a baseline the same way.
+     */
+    public function baseline_help_text()
+    {
+        return __('A baseline is the pristine copy of a plugin or theme, downloaded from WordPress.org the first time you scan it. Code Guardian compares the files on your site against that copy — anything that differs is a local modification.', 'wp-code-guardian');
+    }
+
+    public function modified_help_text()
+    {
+        return __('These items have files that no longer match their baseline, which means someone edited them directly on the server. Updating them would overwrite those edits.', 'wp-code-guardian');
+    }
+
+    public function status_help_text()
+    {
+        return __('No Baseline: there is nothing to compare against yet — create one first. Clean: every file matches the baseline. Modified: at least one file differs from it.', 'wp-code-guardian');
+    }
+
     public function render_main_page()
     {
         include WP_CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/main-page.php';

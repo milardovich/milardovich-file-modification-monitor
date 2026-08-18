@@ -319,3 +319,100 @@ body.modal-open {
 .wp-code-guardian-progress.has-error .wp-code-guardian-progress-label {
     color: #d63638;
 }
+
+/* Help tips ---------------------------------------------------------
+   Shown on hover and keyboard focus, and pinned open by click so touch
+   users (who get neither) can read them too. */
+
+.wp-code-guardian-tip {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.wp-code-guardian-tip-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    color: #787c82;
+    cursor: help;
+}
+
+.wp-code-guardian-tip-toggle:hover,
+.wp-code-guardian-tip-toggle:focus {
+    color: #2271b1;
+}
+
+.wp-code-guardian-tip-toggle:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
+}
+
+/* Beat the oversized .stat-card .dashicons rule above. */
+.wp-code-guardian-stats .stat-card .wp-code-guardian-tip .dashicons,
+.wp-code-guardian-tip .wp-code-guardian-tip-toggle .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: inherit;
+}
+
+.wp-code-guardian-tip-text {
+    position: absolute;
+    top: calc(100% + 9px);
+    left: 50%;
+    z-index: 100;
+    display: none;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: 280px;
+    padding: 10px 12px;
+    transform: translateX(-50%);
+    background: #1d2327;
+    color: #f0f0f1;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .25);
+}
+
+.wp-code-guardian-tip-text::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border: 6px solid transparent;
+    border-bottom-color: #1d2327;
+}
+
+.wp-code-guardian-tip:hover .wp-code-guardian-tip-text,
+.wp-code-guardian-tip:focus-within .wp-code-guardian-tip-text,
+.wp-code-guardian-tip.is-open .wp-code-guardian-tip-text {
+    display: block;
+}
+
+/* Near the right edge of a table the bubble would overflow the screen. */
+th:last-child .wp-code-guardian-tip-text,
+td:last-child .wp-code-guardian-tip-text {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+th:last-child .wp-code-guardian-tip-text::after,
+td:last-child .wp-code-guardian-tip-text::after {
+    left: auto;
+    right: 6px;
+    margin-left: 0;
+}

@@ -43,22 +43,34 @@ if ($theme_scanner) {
         <div class="stat-card">
             <span class="dashicons dashicons-yes-alt"></span>
             <h2><?php echo (int) $plugin_baselines; ?></h2>
-            <p><?php esc_html_e('Plugin baselines', 'wp-code-guardian'); ?></p>
+            <p>
+                <?php esc_html_e('Plugin baselines', 'wp-code-guardian'); ?>
+                <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->baseline_help_text(), __('What is a baseline?', 'wp-code-guardian')) : ''; ?>
+            </p>
         </div>
         <div class="stat-card<?php echo $modified_plugins ? ' has-changes' : ''; ?>">
             <span class="dashicons dashicons-warning"></span>
             <h2><?php echo (int) $modified_plugins; ?></h2>
-            <p><?php esc_html_e('Modified plugins', 'wp-code-guardian'); ?></p>
+            <p>
+                <?php esc_html_e('Modified plugins', 'wp-code-guardian'); ?>
+                <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->modified_help_text(), __('What does modified mean?', 'wp-code-guardian')) : ''; ?>
+            </p>
         </div>
         <div class="stat-card">
             <span class="dashicons dashicons-yes-alt"></span>
             <h2><?php echo (int) $theme_baselines; ?></h2>
-            <p><?php esc_html_e('Theme baselines', 'wp-code-guardian'); ?></p>
+            <p>
+                <?php esc_html_e('Theme baselines', 'wp-code-guardian'); ?>
+                <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->baseline_help_text(), __('What is a baseline?', 'wp-code-guardian')) : ''; ?>
+            </p>
         </div>
         <div class="stat-card<?php echo $modified_themes ? ' has-changes' : ''; ?>">
             <span class="dashicons dashicons-warning"></span>
             <h2><?php echo (int) $modified_themes; ?></h2>
-            <p><?php esc_html_e('Modified themes', 'wp-code-guardian'); ?></p>
+            <p>
+                <?php esc_html_e('Modified themes', 'wp-code-guardian'); ?>
+                <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->modified_help_text(), __('What does modified mean?', 'wp-code-guardian')) : ''; ?>
+            </p>
         </div>
     </div>
 

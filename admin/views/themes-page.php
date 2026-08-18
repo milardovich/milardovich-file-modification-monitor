@@ -15,7 +15,10 @@ $active_template = get_stylesheet();
         <thead>
             <tr>
                 <th><?php esc_html_e('Theme', 'wp-code-guardian'); ?></th>
-                <th><?php esc_html_e('Status', 'wp-code-guardian'); ?></th>
+                <th>
+                    <?php esc_html_e('Status', 'wp-code-guardian'); ?>
+                    <?php echo $admin_manager ? $admin_manager->help_tip($admin_manager->status_help_text(), __('What do these statuses mean?', 'wp-code-guardian')) : ''; ?>
+                </th>
                 <th><?php esc_html_e('Changes', 'wp-code-guardian'); ?></th>
                 <th><?php esc_html_e('Actions', 'wp-code-guardian'); ?></th>
             </tr>

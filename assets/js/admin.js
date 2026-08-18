@@ -55,7 +55,34 @@ jQuery(document).ready(function ($) {
     $(document).on('keydown', function (e) {
         if (e.key === 'Escape') {
             $('.wp-code-guardian-media-modal:visible').each(function () { hideModal($(this)); });
+            closeHelpTips();
         }
+    });
+
+    // Help tips. CSS already handles hover and keyboard focus; clicking pins
+    // one open, which is the only way a touch device can read it.
+    function closeHelpTips() {
+        $('.wp-code-guardian-tip.is-open')
+            .removeClass('is-open')
+            .find('.wp-code-guardian-tip-toggle')
+            .attr('aria-expanded', 'false');
+    }
+
+    $(document).on('click', '.wp-code-guardian-tip-toggle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $toggle = $(this);
+        var $tip    = $toggle.closest('.wp-code-guardian-tip');
+        var wasOpen = $tip.hasClass('is-open');
+        closeHelpTips();
+        if (!wasOpen) {
+            $tip.addClass('is-open');
+            $toggle.attr('aria-expanded', 'true');
+        }
+    });
+
+    $(document).on('click', function () {
+        closeHelpTips();
     });
 
     // View changes
