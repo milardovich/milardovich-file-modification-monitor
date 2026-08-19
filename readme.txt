@@ -81,11 +81,10 @@ These requests happen only when a baseline is created or refreshed: when you run
 
 == Screenshots ==
 
-1. The Code Guardian dashboard with baseline and modification counters.
-2. The Plugin Changes screen listing each plugin's status.
-3. The line-by-line diff viewer (unified and split views).
-4. Update warning shown before overwriting a modified item.
-5. Settings screen with scan frequency and maintenance actions.
+1. The dashboard: baseline and modification counters, with inline help explaining what a baseline is.
+2. The Plugin Changes screen, listing each plugin's status and the actions available for it.
+3. The diff viewer, showing exactly what changed and offering to keep the changes or restore the original files.
+4. Settings: scan frequency, notifications, ignored file patterns and maintenance actions.
 
 == Changelog ==
 
