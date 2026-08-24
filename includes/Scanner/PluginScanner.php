@@ -1,10 +1,10 @@
 <?php
-namespace WPCodeGuardian\Scanner;
+namespace MilardovichFMM\Scanner;
 
-use WPCodeGuardian\Storage\SnapshotStorage;
-use WPCodeGuardian\Diff\DiffGenerator;
-use WPCodeGuardian\Downloader\WordPressOrgDownloader;
-use WPCodeGuardian\Core\Logger;
+use MilardovichFMM\Storage\SnapshotStorage;
+use MilardovichFMM\Diff\DiffGenerator;
+use MilardovichFMM\Downloader\WordPressOrgDownloader;
+use MilardovichFMM\Core\Logger;
 
 class PluginScanner extends BaseScanner
 {

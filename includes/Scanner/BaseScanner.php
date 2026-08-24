@@ -1,8 +1,8 @@
 <?php
-namespace WPCodeGuardian\Scanner;
+namespace MilardovichFMM\Scanner;
 
-use WPCodeGuardian\Storage\SnapshotStorage;
-use WPCodeGuardian\Diff\DiffGenerator;
+use MilardovichFMM\Storage\SnapshotStorage;
+use MilardovichFMM\Diff\DiffGenerator;
 
 abstract class BaseScanner
 {

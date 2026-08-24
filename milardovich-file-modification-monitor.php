@@ -1,16 +1,15 @@
 <?php
 /**
- * Plugin Name: Code Guardian
- * Plugin URI: https://milardovich.com.ar/plugins/code-guardian
+ * Plugin Name: Milardovich File Modification Monitor
  * Description: Detects local code modifications in installed plugins and themes by comparing files against pristine copies from WordPress.org, and warns before updates would overwrite them.
  * Version: 1.0.0
  * Requires at least: 5.0
- * Requires PHP: 7.2
+ * Requires PHP: 8.3
  * Author: Sergio Milardovich
  * Author URI: https://milardovich.com.ar
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: code-guardian
+ * Text Domain: milardovich-file-modification-monitor
  * Domain Path: /languages
  */
 
@@ -18,19 +17,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CODE_GUARDIAN_VERSION', '1.0.0');
-define('CODE_GUARDIAN_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('CODE_GUARDIAN_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('CODE_GUARDIAN_PLUGIN_BASENAME', plugin_basename(__FILE__));
+define('MILARDOVICH_FMM_VERSION', '1.0.0');
+define('MILARDOVICH_FMM_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('MILARDOVICH_FMM_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('MILARDOVICH_FMM_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
-require_once CODE_GUARDIAN_PLUGIN_DIR . 'vendor/autoload.php';
+require_once MILARDOVICH_FMM_PLUGIN_DIR . 'vendor/autoload.php';
 
-use WPCodeGuardian\Core\Plugin;
+use MilardovichFMM\Core\Plugin;
 
-function code_guardian() {
+function milardovich_fmm() {
     return Plugin::instance();
 }
 
 add_action('plugins_loaded', function () {
-    code_guardian()->init();
+    milardovich_fmm()->init();
 });

@@ -1,0 +1,524 @@
+# Copyright (C) 2026 Sergio Milardovich
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Milardovich File Modification Monitor 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/milardovich-file-modification-monitor\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-24T00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Domain: milardovich-file-modification-monitor\n"
+
+#. Plugin Name of the plugin
+#: milardovich-file-modification-monitor.php
+msgid "Milardovich File Modification Monitor"
+msgstr ""
+
+#. Description of the plugin
+#: milardovich-file-modification-monitor.php
+msgid "Detects local code modifications in installed plugins and themes by comparing files against pristine copies from WordPress.org, and warns before updates would overwrite them."
+msgstr ""
+
+#. Author of the plugin
+#: milardovich-file-modification-monitor.php
+msgid "Sergio Milardovich"
+msgstr ""
+
+#. Author URI of the plugin
+#: milardovich-file-modification-monitor.php
+msgid "https://milardovich.com.ar"
+msgstr ""
+
+#. translators: 1: number of files changed, 2: number of added lines, 3: number of removed lines.
+#: admin/views/diff-modal.php:27
+#, php-format
+msgid "%1$d file changed, %2$d addition(+), %3$d deletion(-)"
+msgid_plural "%1$d files changed, %2$d additions(+), %3$d deletions(-)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/diff-modal.php:41
+msgid "New"
+msgstr ""
+
+#: admin/views/diff-modal.php:41
+msgid "Deleted"
+msgstr ""
+
+#: admin/views/diff-modal.php:41
+#: admin/views/diff-modal.php:73
+#: admin/views/plugins-page.php:48
+#: admin/views/themes-page.php:49
+#: includes/Admin/AdminManager.php:437
+#: includes/Admin/AdminManager.php:489
+msgid "Modified"
+msgstr ""
+
+#: admin/views/diff-modal.php:51
+msgid "Show Changes"
+msgstr ""
+
+#: admin/views/diff-modal.php:54
+msgid "Unified"
+msgstr ""
+
+#: admin/views/diff-modal.php:55
+msgid "Split"
+msgstr ""
+
+#: admin/views/diff-modal.php:69
+msgid "Original"
+msgstr ""
+
+#: admin/views/main-page.php:39
+#: includes/Admin/AdminManager.php:62
+#: includes/Admin/AdminManager.php:70
+msgid "Milardovich File Modification Monitor"
+msgstr ""
+
+#: admin/views/main-page.php:40
+msgid "Detect unauthorized modifications in plugins and themes by comparing them against pristine copies from WordPress.org."
+msgstr ""
+
+#: admin/views/main-page.php:47
+msgid "Plugin baselines"
+msgstr ""
+
+#: admin/views/main-page.php:48
+#: admin/views/main-page.php:64
+msgid "What is a baseline?"
+msgstr ""
+
+#: admin/views/main-page.php:55
+msgid "Modified plugins"
+msgstr ""
+
+#: admin/views/main-page.php:56
+#: admin/views/main-page.php:72
+msgid "What does modified mean?"
+msgstr ""
+
+#: admin/views/main-page.php:63
+msgid "Theme baselines"
+msgstr ""
+
+#: admin/views/main-page.php:71
+msgid "Modified themes"
+msgstr ""
+
+#: admin/views/main-page.php:78
+msgid "Quick Actions"
+msgstr ""
+
+#: admin/views/main-page.php:80
+msgid "Scan All Items"
+msgstr ""
+
+#: admin/views/main-page.php:81
+#: includes/Admin/AdminManager.php:73
+msgid "Settings"
+msgstr ""
+
+#: admin/views/main-page.php:86
+msgid "How It Works"
+msgstr ""
+
+#: admin/views/main-page.php:88
+msgid "Create baselines by downloading original plugin and theme files from WordPress.org."
+msgstr ""
+
+#: admin/views/main-page.php:89
+msgid "The plugin compares the files on disk against the baseline using SHA-256 hashes."
+msgstr ""
+
+#: admin/views/main-page.php:90
+msgid "Modified plugins and themes are flagged in the WordPress admin, including a warning before any update."
+msgstr ""
+
+#: admin/views/main-page.php:91
+msgid "After an authorized update, the baseline is regenerated automatically."
+msgstr ""
+
+#: admin/views/main-page.php:95
+msgid "Baselines come from WordPress.org, not from the current files on disk — that is what makes drift detectable."
+msgstr ""
+
+#: admin/views/plugins-page.php:13
+#: includes/Admin/AdminManager.php:71
+msgid "Plugin Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:15
+msgid "Scan All Plugins"
+msgstr ""
+
+#: admin/views/plugins-page.php:20
+msgid "Plugin"
+msgstr ""
+
+#: admin/views/plugins-page.php:22
+#: admin/views/themes-page.php:19
+msgid "Status"
+msgstr ""
+
+#: admin/views/plugins-page.php:23
+#: admin/views/themes-page.php:20
+msgid "What do these statuses mean?"
+msgstr ""
+
+#: admin/views/plugins-page.php:25
+#: admin/views/themes-page.php:22
+msgid "Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:26
+#: admin/views/themes-page.php:23
+msgid "Actions"
+msgstr ""
+
+#: admin/views/plugins-page.php:46
+#: admin/views/themes-page.php:47
+msgid "No Baseline"
+msgstr ""
+
+#: admin/views/plugins-page.php:50
+#: admin/views/themes-page.php:51
+msgid "Clean"
+msgstr ""
+
+#: admin/views/plugins-page.php:55
+#: admin/views/themes-page.php:56
+msgid "Create baseline first"
+msgstr ""
+
+#. translators: %d: number of changed files.
+#: admin/views/plugins-page.php:58
+#: admin/views/themes-page.php:59
+#, php-format
+msgid "%d file changed"
+msgid_plural "%d files changed"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/plugins-page.php:60
+#: admin/views/themes-page.php:61
+msgid "No changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:65
+#: admin/views/themes-page.php:66
+msgid "Create Baseline"
+msgstr ""
+
+#: admin/views/plugins-page.php:67
+#: admin/views/themes-page.php:68
+#: includes/Admin/AdminManager.php:415
+#: includes/Admin/AdminManager.php:474
+msgid "View Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:68
+#: admin/views/themes-page.php:69
+#: includes/Admin/AdminManager.php:476
+msgid "Accept Changes"
+msgstr ""
+
+#: admin/views/plugins-page.php:70
+#: admin/views/themes-page.php:71
+msgid "Update Baseline"
+msgstr ""
+
+#: admin/views/settings-page.php:10
+msgid "Disabled"
+msgstr ""
+
+#: admin/views/settings-page.php:11
+msgid "Hourly"
+msgstr ""
+
+#: admin/views/settings-page.php:12
+msgid "Twice Daily"
+msgstr ""
+
+#: admin/views/settings-page.php:13
+msgid "Daily"
+msgstr ""
+
+#: admin/views/settings-page.php:14
+msgid "Weekly"
+msgstr ""
+
+#: admin/views/settings-page.php:18
+msgid "Milardovich File Modification Monitor Settings"
+msgstr ""
+
+#: admin/views/settings-page.php:23
+msgid "Scan Frequency"
+msgstr ""
+
+#: admin/views/settings-page.php:30
+msgid "How often to check for code changes on admin page loads."
+msgstr ""
+
+#: admin/views/settings-page.php:34
+msgid "Email Notifications"
+msgstr ""
+
+#: admin/views/settings-page.php:38
+msgid "Send email when code changes are detected"
+msgstr ""
+
+#: admin/views/settings-page.php:43
+msgid "Notification Email"
+msgstr ""
+
+#: admin/views/settings-page.php:49
+msgid "Ignored Files"
+msgstr ""
+
+#: admin/views/settings-page.php:52
+msgid "One pattern per line."
+msgstr ""
+
+#: admin/views/settings-page.php:56
+msgid "Show Warnings"
+msgstr ""
+
+#: admin/views/settings-page.php:60
+msgid "Show update warnings on plugins/themes/update screens"
+msgstr ""
+
+#: admin/views/settings-page.php:70
+msgid "Maintenance"
+msgstr ""
+
+#: admin/views/settings-page.php:72
+msgid "Clear All Snapshots"
+msgstr ""
+
+#: admin/views/settings-page.php:73
+msgid "Rescan All Plugins &amp; Themes"
+msgstr ""
+
+#: admin/views/themes-page.php:10
+#: includes/Admin/AdminManager.php:72
+msgid "Theme Changes"
+msgstr ""
+
+#: admin/views/themes-page.php:12
+msgid "Scan All Themes"
+msgstr ""
+
+#: admin/views/themes-page.php:17
+msgid "Theme"
+msgstr ""
+
+#: admin/views/themes-page.php:37
+msgid "Active"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:63
+msgid "File Monitor"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:70
+msgid "Dashboard"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:100
+msgid "More information"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:131
+msgid "A baseline is the pristine copy of a plugin or theme, downloaded from WordPress.org the first time you scan it. This plugin compares the files on your site against that copy — anything that differs is a local modification."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:136
+msgid "These items have files that no longer match their baseline, which means someone edited them directly on the server. Updating them would overwrite those edits."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:141
+msgid "No Baseline: there is nothing to compare against yet — create one first. Clean: every file matches the baseline. Modified: at least one file differs from it."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:416
+msgid "Refresh Baseline"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:417
+msgid "Are you sure you want to refresh the baseline? This will overwrite the stored snapshot."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:418
+msgid "Loading…"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:419
+msgid "An error occurred."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:420
+msgid "Milardovich File Modification Monitor finished checking for code changes in the background."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:421
+msgid "Reload to see the results"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:422
+msgid "Preparing…"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:423
+msgid "Building baseline for"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:424
+msgid "Comparing files against the baselines…"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:425
+msgid "Done. Reloading…"
+msgstr ""
+
+#. translators: %d: number of items that could not be scanned.
+#: includes/Admin/AdminManager.php:427
+#, php-format
+msgid "%d item(s) could not be scanned."
+msgstr ""
+
+#. translators: %d: number of items that could not be scanned.
+#: includes/Admin/AdminManager.php:428
+msgid "Close"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:429
+msgid "Keep My Changes"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:430
+msgid "Restore Original"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:431
+msgid "Keep your changes?"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:432
+msgid "The files on disk become the new baseline, so these changes stop being reported. Nothing on disk is touched."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:433
+msgid "Restore the original files?"
+msgstr ""
+
+#. translators: %d: number of affected files.
+#: includes/Admin/AdminManager.php:435
+#, php-format
+msgid "This overwrites %d file(s) on disk with the original version from the baseline. Your changes to them will be lost and this cannot be undone."
+msgstr ""
+
+#. translators: %d: number of affected files.
+#: includes/Admin/AdminManager.php:436
+msgid "Working…"
+msgstr ""
+
+#. translators: %d: number of modified files.
+#: includes/Admin/AdminManager.php:464
+#, php-format
+msgid "Code changes detected: %d file has been modified."
+msgid_plural "Code changes detected: %d files have been modified."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Admin/AdminManager.php:521
+msgid "Milardovich File Modification Monitor Alert:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:523
+msgid "Plugins with custom modifications:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:526
+msgid "Themes with custom modifications:"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:529
+msgid "Updating these items will overwrite your custom changes."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:530
+msgid "Review changes before updating"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:554
+msgid "Welcome to Milardovich File Modification Monitor!"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:555
+msgid "No baselines exist yet. Create them to start detecting unauthorized code modifications."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:557
+msgid "Create Plugin Baselines"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:558
+msgid "Create Theme Baselines"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:559
+msgid "Dismiss"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:581
+msgid "No changes detected."
+msgstr ""
+
+#: includes/Admin/AdminManager.php:614
+msgid "Baseline created/updated successfully from WordPress.org"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:615
+msgid "Baseline updated from current files"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:642
+msgid "Scan completed successfully"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:659
+msgid "All snapshots cleared successfully"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:674
+msgid "Rescan completed successfully"
+msgstr ""
+
+#: includes/Admin/AdminManager.php:703
+msgid "Your changes are now the baseline."
+msgstr ""
+
+#. translators: %d: number of files that could not be written.
+#: includes/Admin/AdminManager.php:736
+#, php-format
+msgid "%d file(s) could not be written. Check the file permissions."
+msgstr ""
+
+#. translators: 1: files rewritten, 2: files removed.
+#: includes/Admin/AdminManager.php:744
+#, php-format
+msgid "Restored the original files: %1$d rewritten, %2$d removed."
+msgstr ""
+
+#: includes/Core/Plugin.php:100
+msgid "Once Weekly (File Monitor)"
+msgstr ""
+
+#: includes/Core/Plugin.php:224
+msgid "⚠️ Code Changes Detected! This item has custom modifications that will be lost during the update."
+msgstr ""

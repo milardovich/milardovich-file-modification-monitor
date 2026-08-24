@@ -1,12 +1,12 @@
 <?php
 /**
- * Uninstall routine for Code Guardian.
+ * Uninstall routine for Milardovich File Modification Monitor.
  *
  * Runs only when the plugin is deleted from the WordPress admin. Removes the
  * snapshot tables, options and transients created by the plugin so that no
  * orphan data is left behind.
  *
- * @package WPCodeGuardian
+ * @package MilardovichFMM
  */
 
 // Exit if this file is called directly or not during an uninstall.
@@ -17,34 +17,34 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 global $wpdb;
 
 // Drop the snapshot tables.
-$wpcg_tables = [
-    $wpdb->prefix . 'code_guardian_plugins',
-    $wpdb->prefix . 'code_guardian_themes',
+$milardovich_fmm_tables = [
+    $wpdb->prefix . 'milardovich_fmm_plugins',
+    $wpdb->prefix . 'milardovich_fmm_themes',
 ];
-foreach ($wpcg_tables as $wpcg_table) {
+foreach ($milardovich_fmm_tables as $milardovich_fmm_table) {
     // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is an internal constant, not user input.
-    $wpdb->query("DROP TABLE IF EXISTS {$wpcg_table}");
+    $wpdb->query("DROP TABLE IF EXISTS {$milardovich_fmm_table}");
 }
 
 // Delete plugin options.
-$wpcg_options = [
-    'code_guardian_scan_frequency',
-    'code_guardian_email_notifications',
-    'code_guardian_notification_email',
-    'code_guardian_ignored_files',
-    'code_guardian_show_warnings',
-    'code_guardian_last_check',
-    'code_guardian_changes_map',
+$milardovich_fmm_options = [
+    'milardovich_fmm_scan_frequency',
+    'milardovich_fmm_email_notifications',
+    'milardovich_fmm_notification_email',
+    'milardovich_fmm_ignored_files',
+    'milardovich_fmm_show_warnings',
+    'milardovich_fmm_last_check',
+    'milardovich_fmm_changes_map',
 ];
-foreach ($wpcg_options as $wpcg_option) {
-    delete_option($wpcg_option);
+foreach ($milardovich_fmm_options as $milardovich_fmm_option) {
+    delete_option($milardovich_fmm_option);
 }
 
 // Delete plugin transients.
-delete_transient('code_guardian_changes_cache');
-delete_transient('code_guardian_scan_lock');
-delete_transient('code_guardian_show_welcome_notice');
+delete_transient('milardovich_fmm_changes_cache');
+delete_transient('milardovich_fmm_scan_lock');
+delete_transient('milardovich_fmm_show_welcome_notice');
 
 // Drop the background scan events.
-wp_clear_scheduled_hook('code_guardian_scan');
-wp_clear_scheduled_hook('code_guardian_scan_now');
+wp_clear_scheduled_hook('milardovich_fmm_scan');
+wp_clear_scheduled_hook('milardovich_fmm_scan_now');

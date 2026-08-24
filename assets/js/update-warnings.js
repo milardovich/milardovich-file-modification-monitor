@@ -1,37 +1,37 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    if (typeof codeGuardianWarnings === 'undefined') {
+    if (typeof milardovichFMMWarnings === 'undefined') {
         return;
     }
 
-    var pluginsWithChanges = codeGuardianWarnings.plugins_with_changes || [];
-    var themesWithChanges  = codeGuardianWarnings.themes_with_changes || [];
-    var warningMessage     = codeGuardianWarnings.warning_message || '⚠️ Code Changes Detected!';
+    var pluginsWithChanges = milardovichFMMWarnings.plugins_with_changes || [];
+    var themesWithChanges  = milardovichFMMWarnings.themes_with_changes || [];
+    var warningMessage     = milardovichFMMWarnings.warning_message || '⚠️ Code Changes Detected!';
 
     function buildWarningModal() {
-        if ($('#code-guardian-modal').length) {
-            return $('#code-guardian-modal');
+        if ($('#milardovich-fmm-modal').length) {
+            return $('#milardovich-fmm-modal');
         }
         var html = '' +
-            '<div id="code-guardian-modal" class="code-guardian-media-modal update-warning" style="display:none;">' +
+            '<div id="milardovich-fmm-modal" class="milardovich-fmm-media-modal update-warning" style="display:none;">' +
                 '<div class="media-modal-backdrop"></div>' +
                 '<div class="media-modal wp-core-ui">' +
                     '<button type="button" class="media-modal-close"><span class="media-modal-icon"></span><span class="screen-reader-text">Close</span></button>' +
                     '<div class="media-frame-title"><h1>⚠️ Code Changes Detected</h1></div>' +
                     '<div class="media-frame-content">' +
                         '<div class="notice notice-warning"><p>' + warningMessage + '</p></div>' +
-                        '<p class="code-guardian-warning-details"></p>' +
+                        '<p class="milardovich-fmm-warning-details"></p>' +
                     '</div>' +
                     '<div class="media-frame-toolbar"><div class="media-toolbar">' +
-                        '<div class="media-toolbar-secondary"><button type="button" class="button code-guardian-cancel">Cancel</button></div>' +
-                        '<div class="media-toolbar-primary"><button type="button" class="button button-primary code-guardian-proceed">Proceed with Update</button></div>' +
+                        '<div class="media-toolbar-secondary"><button type="button" class="button milardovich-fmm-cancel">Cancel</button></div>' +
+                        '<div class="media-toolbar-primary"><button type="button" class="button button-primary milardovich-fmm-proceed">Proceed with Update</button></div>' +
                     '</div></div>' +
                 '</div>' +
             '</div>';
         var $modal = $(html);
         $('body').append($modal);
-        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .code-guardian-cancel', function () {
+        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .milardovich-fmm-cancel', function () {
             hideWarningModal();
         });
         return $modal;
@@ -39,8 +39,8 @@ jQuery(document).ready(function ($) {
 
     function showWarningModal(message, onProceed) {
         var $modal = buildWarningModal();
-        $modal.find('.code-guardian-warning-details').html(message);
-        $modal.find('.code-guardian-proceed').off('click').on('click', function () {
+        $modal.find('.milardovich-fmm-warning-details').html(message);
+        $modal.find('.milardovich-fmm-proceed').off('click').on('click', function () {
             hideWarningModal();
             if (typeof onProceed === 'function') { onProceed(); }
         });
@@ -49,7 +49,7 @@ jQuery(document).ready(function ($) {
     }
 
     function hideWarningModal() {
-        $('#code-guardian-modal').hide();
+        $('#milardovich-fmm-modal').hide();
         $('body').removeClass('modal-open');
     }
 

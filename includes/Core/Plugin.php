@@ -1,11 +1,11 @@
 <?php
-namespace WPCodeGuardian\Core;
+namespace MilardovichFMM\Core;
 
-use WPCodeGuardian\Storage\SnapshotStorage;
-use WPCodeGuardian\Diff\DiffGenerator;
-use WPCodeGuardian\Scanner\PluginScanner;
-use WPCodeGuardian\Scanner\ThemeScanner;
-use WPCodeGuardian\Admin\AdminManager;
+use MilardovichFMM\Storage\SnapshotStorage;
+use MilardovichFMM\Diff\DiffGenerator;
+use MilardovichFMM\Scanner\PluginScanner;
+use MilardovichFMM\Scanner\ThemeScanner;
+use MilardovichFMM\Admin\AdminManager;
 
 class Plugin
 {
@@ -56,14 +56,14 @@ class Plugin
 
     private function register_hooks()
     {
-        register_activation_hook(CODE_GUARDIAN_PLUGIN_DIR . 'code-guardian.php', [$this, 'activate']);
-        register_deactivation_hook(CODE_GUARDIAN_PLUGIN_DIR . 'code-guardian.php', [$this, 'deactivate']);
+        register_activation_hook(MILARDOVICH_FMM_PLUGIN_DIR . 'milardovich-file-modification-monitor.php', [$this, 'activate']);
+        register_deactivation_hook(MILARDOVICH_FMM_PLUGIN_DIR . 'milardovich-file-modification-monitor.php', [$this, 'deactivate']);
 
         add_filter('cron_schedules', [$this, 'add_cron_schedules']);
         add_action(AdminManager::CRON_HOOK, [$this, 'run_background_scan']);
         add_action(AdminManager::CRON_HOOK_ONCE, [$this, 'run_background_scan']);
-        add_action('update_option_code_guardian_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
-        add_action('add_option_code_guardian_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
+        add_action('update_option_milardovich_fmm_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
+        add_action('add_option_milardovich_fmm_scan_frequency', [$this, 'reschedule_scan'], 10, 0);
 
         add_action('upgrader_process_complete', [$this, 'handle_upgrade'], 10, 2);
         add_filter('plugin_action_links', [$this, 'add_plugin_action_links'], 10, 2);
@@ -75,8 +75,8 @@ class Plugin
     private function ensure_tables_exist()
     {
         global $wpdb;
-        $plugins_table = $wpdb->prefix . 'code_guardian_plugins';
-        $themes_table  = $wpdb->prefix . 'code_guardian_themes';
+        $plugins_table = $wpdb->prefix . 'milardovich_fmm_plugins';
+        $themes_table  = $wpdb->prefix . 'milardovich_fmm_themes';
 
         $plugins_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $plugins_table));
         $themes_exists  = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $themes_table));
@@ -94,10 +94,10 @@ class Plugin
      */
     public function add_cron_schedules($schedules)
     {
-        if (!isset($schedules['code_guardian_weekly'])) {
-            $schedules['code_guardian_weekly'] = [
+        if (!isset($schedules['milardovich_fmm_weekly'])) {
+            $schedules['milardovich_fmm_weekly'] = [
                 'interval' => WEEK_IN_SECONDS,
-                'display'  => __('Once Weekly (Code Guardian)', 'code-guardian'),
+                'display'  => __('Once Weekly (File Monitor)', 'milardovich-file-modification-monitor'),
             ];
         }
         return $schedules;
@@ -105,12 +105,12 @@ class Plugin
 
     private function get_cron_schedule_name()
     {
-        $frequency = get_option('code_guardian_scan_frequency', 'daily');
+        $frequency = get_option('milardovich_fmm_scan_frequency', 'daily');
         $schedules = [
             'hourly'     => 'hourly',
             'twicedaily' => 'twicedaily',
             'daily'      => 'daily',
-            'weekly'     => 'code_guardian_weekly',
+            'weekly'     => 'milardovich_fmm_weekly',
         ];
         // 'disabled' (and anything unrecognised) maps to no schedule at all.
         return isset($schedules[$frequency]) ? $schedules[$frequency] : '';
@@ -160,7 +160,7 @@ class Plugin
         $this->storage->create_tables();
         $this->ensure_scan_scheduled();
         $this->admin_manager->queue_background_scan();
-        set_transient('code_guardian_show_welcome_notice', true, 30 * DAY_IN_SECONDS);
+        set_transient('milardovich_fmm_show_welcome_notice', true, 30 * DAY_IN_SECONDS);
     }
 
     public function deactivate()
@@ -206,8 +206,8 @@ class Plugin
             return;
         }
         wp_enqueue_script(
-            'code-guardian-update-warnings',
-            CODE_GUARDIAN_PLUGIN_URL . 'assets/js/update-warnings.js',
+            'milardovich-fmm-update-warnings',
+            MILARDOVICH_FMM_PLUGIN_URL . 'assets/js/update-warnings.js',
             ['jquery'],
             AdminManager::asset_version('assets/js/update-warnings.js'),
             true
@@ -216,14 +216,14 @@ class Plugin
         $changes = $this->admin_manager->get_cached_changes_for_warnings();
 
         wp_localize_script(
-            'code-guardian-update-warnings',
-            'codeGuardianWarnings',
+            'milardovich-fmm-update-warnings',
+            'milardovichFMMWarnings',
             [
                 'plugins_with_changes' => array_keys($changes['plugins'] ?? []),
                 'themes_with_changes'  => array_keys($changes['themes'] ?? []),
-                'warning_message'      => __('⚠️ Code Changes Detected! This item has custom modifications that will be lost during the update.', 'code-guardian'),
+                'warning_message'      => __('⚠️ Code Changes Detected! This item has custom modifications that will be lost during the update.', 'milardovich-file-modification-monitor'),
                 'ajax_url'             => admin_url('admin-ajax.php'),
-                'nonce'                => wp_create_nonce('code_guardian'),
+                'nonce'                => wp_create_nonce('milardovich_fmm'),
             ]
         );
     }

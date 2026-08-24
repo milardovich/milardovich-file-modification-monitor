@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) { exit; }
 /** @var string $diff_item */
 /** @var string $diff_type */
 
-$diff_generator = code_guardian()->diff_generator ?? null;
+$diff_generator = milardovich_fmm()->diff_generator ?? null;
 
 $total_additions = 0;
 $total_deletions = 0;
@@ -24,7 +24,7 @@ $files_changed = count($diff_changes);
         <?php
         printf(
             /* translators: 1: number of files changed, 2: number of added lines, 3: number of removed lines. */
-            esc_html(_n('%1$d file changed, %2$d addition(+), %3$d deletion(-)', '%1$d files changed, %2$d additions(+), %3$d deletions(-)', $files_changed, 'code-guardian')),
+            esc_html(_n('%1$d file changed, %2$d addition(+), %3$d deletion(-)', '%1$d files changed, %2$d additions(+), %3$d deletions(-)', $files_changed, 'milardovich-file-modification-monitor')),
             (int) $files_changed,
             (int) $total_additions,
             (int) $total_deletions
@@ -38,7 +38,7 @@ $files_changed = count($diff_changes);
     $is_new     = !empty($change['is_new']);
     $is_deleted = !empty($change['is_deleted']);
     $badge_class = $is_new ? 'new' : ($is_deleted ? 'deleted' : 'modified');
-    $badge_label = $is_new ? __('New', 'code-guardian') : ($is_deleted ? __('Deleted', 'code-guardian') : __('Modified', 'code-guardian'));
+    $badge_label = $is_new ? __('New', 'milardovich-file-modification-monitor') : ($is_deleted ? __('Deleted', 'milardovich-file-modification-monitor') : __('Modified', 'milardovich-file-modification-monitor'));
     $lines = $diff_generator ? $diff_generator->format_for_html($change['diff']) : [];
     $uid   = 'diff-' . $index . '-' . wp_generate_password(6, false);
 ?>
@@ -48,11 +48,11 @@ $files_changed = count($diff_changes);
             <span class="badge <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_label); ?></span>
             <button type="button" class="button-link diff-toggle">
                 <span class="dashicons dashicons-arrow-down"></span>
-                <span class="diff-toggle-label"><?php esc_html_e('Show Changes', 'code-guardian'); ?></span>
+                <span class="diff-toggle-label"><?php esc_html_e('Show Changes', 'milardovich-file-modification-monitor'); ?></span>
             </button>
             <span class="diff-view-toggle">
-                <label><input type="radio" name="view-<?php echo esc_attr($uid); ?>" value="unified" checked /> <?php esc_html_e('Unified', 'code-guardian'); ?></label>
-                <label><input type="radio" name="view-<?php echo esc_attr($uid); ?>" value="split" /> <?php esc_html_e('Split', 'code-guardian'); ?></label>
+                <label><input type="radio" name="view-<?php echo esc_attr($uid); ?>" value="unified" checked /> <?php esc_html_e('Unified', 'milardovich-file-modification-monitor'); ?></label>
+                <label><input type="radio" name="view-<?php echo esc_attr($uid); ?>" value="split" /> <?php esc_html_e('Split', 'milardovich-file-modification-monitor'); ?></label>
             </span>
         </div>
         <div class="diff-file-body" style="display:none;">
@@ -66,11 +66,11 @@ $files_changed = count($diff_changes);
             </div>
             <div class="diff-view diff-view-split" style="display:none;">
                 <div class="diff-split-col">
-                    <div class="diff-split-header"><?php esc_html_e('Original', 'code-guardian'); ?></div>
+                    <div class="diff-split-header"><?php esc_html_e('Original', 'milardovich-file-modification-monitor'); ?></div>
                     <pre><?php echo esc_html($change['old_content']); ?></pre>
                 </div>
                 <div class="diff-split-col">
-                    <div class="diff-split-header"><?php esc_html_e('Modified', 'code-guardian'); ?></div>
+                    <div class="diff-split-header"><?php esc_html_e('Modified', 'milardovich-file-modification-monitor'); ?></div>
                     <pre><?php echo esc_html($change['new_content']); ?></pre>
                 </div>
             </div>

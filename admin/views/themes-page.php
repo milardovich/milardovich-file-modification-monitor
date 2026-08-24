@@ -1,26 +1,26 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
-$theme_scanner   = code_guardian()->theme_scanner ?? null;
-$admin_manager   = code_guardian()->admin_manager ?? null;
+$theme_scanner   = milardovich_fmm()->theme_scanner ?? null;
+$admin_manager   = milardovich_fmm()->admin_manager ?? null;
 $themes          = wp_get_themes();
 $active_template = get_stylesheet();
 ?>
-<div class="wrap code-guardian-wrap">
-    <h1><?php esc_html_e('Theme Changes', 'code-guardian'); ?></h1>
+<div class="wrap milardovich-fmm-wrap">
+    <h1><?php esc_html_e('Theme Changes', 'milardovich-file-modification-monitor'); ?></h1>
     <p>
-        <button type="button" class="button button-primary code-guardian-scan-all" data-type="themes"><?php esc_html_e('Scan All Themes', 'code-guardian'); ?></button>
+        <button type="button" class="button button-primary milardovich-fmm-scan-all" data-type="themes"><?php esc_html_e('Scan All Themes', 'milardovich-file-modification-monitor'); ?></button>
     </p>
-    <table class="wp-list-table widefat fixed striped code-guardian-table">
+    <table class="wp-list-table widefat fixed striped milardovich-fmm-table">
         <thead>
             <tr>
-                <th><?php esc_html_e('Theme', 'code-guardian'); ?></th>
+                <th><?php esc_html_e('Theme', 'milardovich-file-modification-monitor'); ?></th>
                 <th>
-                    <?php esc_html_e('Status', 'code-guardian'); ?>
-                    <?php if ($admin_manager) { $admin_manager->render_help_tip($admin_manager->status_help_text(), __('What do these statuses mean?', 'code-guardian')); } ?>
+                    <?php esc_html_e('Status', 'milardovich-file-modification-monitor'); ?>
+                    <?php if ($admin_manager) { $admin_manager->render_help_tip($admin_manager->status_help_text(), __('What do these statuses mean?', 'milardovich-file-modification-monitor')); } ?>
                 </th>
-                <th><?php esc_html_e('Changes', 'code-guardian'); ?></th>
-                <th><?php esc_html_e('Actions', 'code-guardian'); ?></th>
+                <th><?php esc_html_e('Changes', 'milardovich-file-modification-monitor'); ?></th>
+                <th><?php esc_html_e('Actions', 'milardovich-file-modification-monitor'); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -34,7 +34,7 @@ $active_template = get_stylesheet();
             }
             $version_label = (string) $theme->get('Version');
             if ($slug === $active_template) {
-                $version_label .= ' | ' . __('Active', 'code-guardian');
+                $version_label .= ' | ' . __('Active', 'milardovich-file-modification-monitor');
             }
             ?>
             <tr>
@@ -44,31 +44,31 @@ $active_template = get_stylesheet();
                 </td>
                 <td>
                     <?php if (!$has_baseline) : ?>
-                        <span class="code-guardian-status no-baseline"><span class="dashicons dashicons-info"></span> <?php esc_html_e('No Baseline', 'code-guardian'); ?></span>
+                        <span class="milardovich-fmm-status no-baseline"><span class="dashicons dashicons-info"></span> <?php esc_html_e('No Baseline', 'milardovich-file-modification-monitor'); ?></span>
                     <?php elseif ($is_modified) : ?>
-                        <span class="code-guardian-status modified"><span class="dashicons dashicons-warning"></span> <?php esc_html_e('Modified', 'code-guardian'); ?></span>
+                        <span class="milardovich-fmm-status modified"><span class="dashicons dashicons-warning"></span> <?php esc_html_e('Modified', 'milardovich-file-modification-monitor'); ?></span>
                     <?php else : ?>
-                        <span class="code-guardian-status clean"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e('Clean', 'code-guardian'); ?></span>
+                        <span class="milardovich-fmm-status clean"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e('Clean', 'milardovich-file-modification-monitor'); ?></span>
                     <?php endif; ?>
                 </td>
                 <td>
                     <?php if (!$has_baseline) : ?>
-                        <?php esc_html_e('Create baseline first', 'code-guardian'); ?>
+                        <?php esc_html_e('Create baseline first', 'milardovich-file-modification-monitor'); ?>
                     <?php elseif ($is_modified) : ?>
                         <?php /* translators: %d: number of changed files. */ ?>
-                        <?php echo esc_html(sprintf(_n('%d file changed', '%d files changed', $change_count, 'code-guardian'), $change_count)); ?>
+                        <?php echo esc_html(sprintf(_n('%d file changed', '%d files changed', $change_count, 'milardovich-file-modification-monitor'), $change_count)); ?>
                     <?php else : ?>
-                        <?php esc_html_e('No changes', 'code-guardian'); ?>
+                        <?php esc_html_e('No changes', 'milardovich-file-modification-monitor'); ?>
                     <?php endif; ?>
                 </td>
                 <td>
                     <?php if (!$has_baseline) : ?>
-                        <button type="button" class="button button-primary code-guardian-refresh-snapshot" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Create Baseline', 'code-guardian'); ?></button>
+                        <button type="button" class="button button-primary milardovich-fmm-refresh-snapshot" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Create Baseline', 'milardovich-file-modification-monitor'); ?></button>
                     <?php elseif ($is_modified) : ?>
-                        <button type="button" class="button code-guardian-view-changes" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('View Changes', 'code-guardian'); ?></button>
-                        <button type="button" class="button code-guardian-keep-changes" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Accept Changes', 'code-guardian'); ?></button>
+                        <button type="button" class="button milardovich-fmm-view-changes" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('View Changes', 'milardovich-file-modification-monitor'); ?></button>
+                        <button type="button" class="button milardovich-fmm-keep-changes" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Accept Changes', 'milardovich-file-modification-monitor'); ?></button>
                     <?php else : ?>
-                        <button type="button" class="button code-guardian-refresh-snapshot" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Update Baseline', 'code-guardian'); ?></button>
+                        <button type="button" class="button milardovich-fmm-refresh-snapshot" data-type="theme" data-item="<?php echo esc_attr($slug); ?>"><?php esc_html_e('Update Baseline', 'milardovich-file-modification-monitor'); ?></button>
                     <?php endif; ?>
                 </td>
             </tr>

@@ -1,25 +1,24 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    console.log('Code Guardian Admin JS - Updated version loaded');
 
     function buildModalShell(id, extraClass) {
         if ($('#' + id).length) {
             return $('#' + id);
         }
         var html = '' +
-            '<div id="' + id + '" class="code-guardian-media-modal' + (extraClass ? ' ' + extraClass : '') + '">' +
+            '<div id="' + id + '" class="milardovich-fmm-media-modal' + (extraClass ? ' ' + extraClass : '') + '">' +
                 '<div class="media-modal-backdrop"></div>' +
                 '<div class="media-modal wp-core-ui">' +
                     '<button type="button" class="media-modal-close"><span class="media-modal-icon"></span><span class="screen-reader-text">Close</span></button>' +
                     '<div class="media-frame-title"><h1></h1></div>' +
                     '<div class="media-frame-content"></div>' +
-                    '<div class="media-frame-toolbar"><div class="media-toolbar"><div class="media-toolbar-secondary"><button type="button" class="button code-guardian-modal-cancel">Cancel</button></div><div class="media-toolbar-primary"><button type="button" class="button button-primary code-guardian-modal-proceed">Proceed</button></div></div></div>' +
+                    '<div class="media-frame-toolbar"><div class="media-toolbar"><div class="media-toolbar-secondary"><button type="button" class="button milardovich-fmm-modal-cancel">Cancel</button></div><div class="media-toolbar-primary"><button type="button" class="button button-primary milardovich-fmm-modal-proceed">Proceed</button></div></div></div>' +
                 '</div>' +
             '</div>';
         var $modal = $(html);
         $('body').append($modal);
-        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .code-guardian-modal-cancel', function () {
+        $modal.on('click', '.media-modal-close, .media-modal-backdrop, .milardovich-fmm-modal-cancel', function () {
             hideModal($modal);
         });
         return $modal;
@@ -40,8 +39,8 @@ jQuery(document).ready(function ($) {
     }
 
     function showAdminModal(title, message, onProceed) {
-        var $modal = buildModalShell('code-guardian-admin-modal');
-        $modal.find('.code-guardian-modal-proceed').off('click').on('click', function () {
+        var $modal = buildModalShell('milardovich-fmm-admin-modal');
+        $modal.find('.milardovich-fmm-modal-proceed').off('click').on('click', function () {
             hideModal($modal);
             if (typeof onProceed === 'function') { onProceed(); }
         });
@@ -49,12 +48,12 @@ jQuery(document).ready(function ($) {
     }
 
     function hideAdminModal() {
-        hideModal($('#code-guardian-admin-modal'));
+        hideModal($('#milardovich-fmm-admin-modal'));
     }
 
     $(document).on('keydown', function (e) {
         if (e.key === 'Escape') {
-            $('.code-guardian-media-modal:visible').each(function () { hideModal($(this)); });
+            $('.milardovich-fmm-media-modal:visible').each(function () { hideModal($(this)); });
             closeHelpTips();
         }
     });
@@ -62,17 +61,17 @@ jQuery(document).ready(function ($) {
     // Help tips. CSS already handles hover and keyboard focus; clicking pins
     // one open, which is the only way a touch device can read it.
     function closeHelpTips() {
-        $('.code-guardian-tip.is-open')
+        $('.milardovich-fmm-tip.is-open')
             .removeClass('is-open')
-            .find('.code-guardian-tip-toggle')
+            .find('.milardovich-fmm-tip-toggle')
             .attr('aria-expanded', 'false');
     }
 
-    $(document).on('click', '.code-guardian-tip-toggle', function (e) {
+    $(document).on('click', '.milardovich-fmm-tip-toggle', function (e) {
         e.preventDefault();
         e.stopPropagation();
         var $toggle = $(this);
-        var $tip    = $toggle.closest('.code-guardian-tip');
+        var $tip    = $toggle.closest('.milardovich-fmm-tip');
         var wasOpen = $tip.hasClass('is-open');
         closeHelpTips();
         if (!wasOpen) {
@@ -86,21 +85,21 @@ jQuery(document).ready(function ($) {
     });
 
     // View changes
-    $(document).on('click', '.code-guardian-view-changes', function (e) {
+    $(document).on('click', '.milardovich-fmm-view-changes', function (e) {
         e.preventDefault();
         var $btn = $(this);
         var type = $btn.data('type');
         var item = $btn.data('item');
-        var $modal = buildModalShell('code-guardian-modal');
-        showModal($modal, 'Loading…', '<p>' + codeGuardian.strings.loading + '</p>');
+        var $modal = buildModalShell('milardovich-fmm-modal');
+        showModal($modal, 'Loading…', '<p>' + milardovichFMM.strings.loading + '</p>');
         $.ajax({
-            url: codeGuardian.ajax_url,
+            url: milardovichFMM.ajax_url,
             type: 'POST',
             data: {
-                action: 'code_guardian_get_diff',
+                action: 'milardovich_fmm_get_diff',
                 type: type,
                 item: item,
-                nonce: codeGuardian.nonce
+                nonce: milardovichFMM.nonce
             }
         }).done(function (resp) {
             if (resp && resp.success) {
@@ -108,10 +107,10 @@ jQuery(document).ready(function ($) {
                 initDiffViewers();
                 setDiffActions($modal, type, item, (resp.data.changes || []).length);
             } else {
-                $modal.find('.media-frame-content').html('<p>' + (resp && resp.data ? resp.data : codeGuardian.strings.error) + '</p>');
+                $modal.find('.media-frame-content').html('<p>' + (resp && resp.data ? resp.data : milardovichFMM.strings.error) + '</p>');
             }
         }).fail(function () {
-            $modal.find('.media-frame-content').html('<p>' + codeGuardian.strings.error + '</p>');
+            $modal.find('.media-frame-content').html('<p>' + milardovichFMM.strings.error + '</p>');
         });
     });
 
@@ -119,16 +118,16 @@ jQuery(document).ready(function ($) {
     // adopt the edits as the new baseline, or put the original files back.
     function setDiffActions($modal, type, item, count) {
         var $primary = $modal.find('.media-toolbar-primary').empty();
-        $modal.find('.code-guardian-modal-cancel').text(codeGuardian.strings.close);
+        $modal.find('.milardovich-fmm-modal-cancel').text(milardovichFMM.strings.close);
         if (!count) {
             return;
         }
         $primary.append(
-            $('<button type="button" class="button code-guardian-keep-changes">')
-                .text(codeGuardian.strings.keep_changes)
+            $('<button type="button" class="button milardovich-fmm-keep-changes">')
+                .text(milardovichFMM.strings.keep_changes)
                 .attr({ 'data-type': type, 'data-item': item }),
-            $('<button type="button" class="button button-primary code-guardian-restore-original">')
-                .text(codeGuardian.strings.restore_original)
+            $('<button type="button" class="button button-primary milardovich-fmm-restore-original">')
+                .text(milardovichFMM.strings.restore_original)
                 .attr({ 'data-type': type, 'data-item': item, 'data-count': count })
         );
     }
@@ -136,34 +135,34 @@ jQuery(document).ready(function ($) {
     function runItemAction(action, type, item, $btn) {
         var $toolbar = $btn.closest('.media-toolbar');
         $toolbar.find('button').prop('disabled', true);
-        $btn.text(codeGuardian.strings.working);
-        $.post(codeGuardian.ajax_url, {
+        $btn.text(milardovichFMM.strings.working);
+        $.post(milardovichFMM.ajax_url, {
             action: action,
             type: type,
             item: item,
-            nonce: codeGuardian.nonce
+            nonce: milardovichFMM.nonce
         }).done(function (resp) {
             if (resp && resp.success) {
                 window.location.reload();
                 return;
             }
             $toolbar.find('button').prop('disabled', false);
-            alert(resp && resp.data ? resp.data : codeGuardian.strings.error);
+            alert(resp && resp.data ? resp.data : milardovichFMM.strings.error);
         }).fail(function () {
             $toolbar.find('button').prop('disabled', false);
-            alert(codeGuardian.strings.error);
+            alert(milardovichFMM.strings.error);
         });
     }
 
-    $(document).on('click', '.code-guardian-keep-changes', function (e) {
+    $(document).on('click', '.milardovich-fmm-keep-changes', function (e) {
         e.preventDefault();
         var $btn = $(this);
         showAdminModal(
-            codeGuardian.strings.keep_title,
-            codeGuardian.strings.keep_confirm,
+            milardovichFMM.strings.keep_title,
+            milardovichFMM.strings.keep_confirm,
             function () {
                 runItemAction(
-                    'code_guardian_accept_changes',
+                    'milardovich_fmm_accept_changes',
                     $btn.data('type'),
                     $btn.data('item'),
                     $btn
@@ -172,15 +171,15 @@ jQuery(document).ready(function ($) {
         );
     });
 
-    $(document).on('click', '.code-guardian-restore-original', function (e) {
+    $(document).on('click', '.milardovich-fmm-restore-original', function (e) {
         e.preventDefault();
         var $btn = $(this);
         showAdminModal(
-            codeGuardian.strings.restore_title,
-            codeGuardian.strings.restore_confirm.replace('%d', $btn.data('count')),
+            milardovichFMM.strings.restore_title,
+            milardovichFMM.strings.restore_confirm.replace('%d', $btn.data('count')),
             function () {
                 runItemAction(
-                    'code_guardian_restore_original',
+                    'milardovich_fmm_restore_original',
                     $btn.data('type'),
                     $btn.data('item'),
                     $btn
@@ -190,7 +189,7 @@ jQuery(document).ready(function ($) {
     });
 
     // Refresh / create snapshot
-    $(document).on('click', '.code-guardian-refresh-snapshot', function (e) {
+    $(document).on('click', '.milardovich-fmm-refresh-snapshot', function (e) {
         e.preventDefault();
         var $btn = $(this);
         var type = $btn.data('type');
@@ -200,28 +199,28 @@ jQuery(document).ready(function ($) {
         var title = isCreate ? 'Create Baseline' : 'Refresh Baseline';
         var msg = isCreate
             ? 'Create baseline by downloading original files from WordPress.org?'
-            : codeGuardian.strings.confirm_refresh;
+            : milardovichFMM.strings.confirm_refresh;
         showAdminModal(title, msg, function () {
             $btn.prop('disabled', true);
             $.ajax({
-                url: codeGuardian.ajax_url,
+                url: milardovichFMM.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'code_guardian_refresh_snapshot',
+                    action: 'milardovich_fmm_refresh_snapshot',
                     type: type,
                     item: item,
-                    nonce: codeGuardian.nonce
+                    nonce: milardovichFMM.nonce
                 }
             }).done(function (resp) {
                 if (resp && resp.success) {
                     window.location.reload();
                 } else {
                     $btn.prop('disabled', false);
-                    alert(resp && resp.data ? resp.data : codeGuardian.strings.error);
+                    alert(resp && resp.data ? resp.data : milardovichFMM.strings.error);
                 }
             }).fail(function () {
                 $btn.prop('disabled', false);
-                alert(codeGuardian.strings.error);
+                alert(milardovichFMM.strings.error);
             });
         });
     });
@@ -262,7 +261,7 @@ jQuery(document).ready(function ($) {
     // Batch scan, one item per request. Walking the queue client-side is what
     // makes a real progress bar possible: a single request for the whole set
     // gives nothing to report until it is over, and risks the PHP time limit.
-    $(document).on('click', '.code-guardian-scan-all', function (e) {
+    $(document).on('click', '.milardovich-fmm-scan-all', function (e) {
         e.preventDefault();
 
         var $btn = $(this);
@@ -271,20 +270,20 @@ jQuery(document).ready(function ($) {
         }
         $btn.prop('disabled', true);
 
-        var $box = $btn.siblings('.code-guardian-progress');
+        var $box = $btn.siblings('.milardovich-fmm-progress');
         if (!$box.length) {
             $box = $(
-                '<div class="code-guardian-progress" role="status" aria-live="polite">' +
-                    '<div class="code-guardian-progress-track">' +
-                        '<span class="code-guardian-progress-fill"></span>' +
+                '<div class="milardovich-fmm-progress" role="status" aria-live="polite">' +
+                    '<div class="milardovich-fmm-progress-track">' +
+                        '<span class="milardovich-fmm-progress-fill"></span>' +
                     '</div>' +
-                    '<p class="code-guardian-progress-label"></p>' +
+                    '<p class="milardovich-fmm-progress-label"></p>' +
                 '</div>'
             );
             $btn.after($box);
         }
-        var $fill  = $box.find('.code-guardian-progress-fill');
-        var $label = $box.find('.code-guardian-progress-label');
+        var $fill  = $box.find('.milardovich-fmm-progress-fill');
+        var $label = $box.find('.milardovich-fmm-progress-label');
         $box.removeClass('has-error').show();
 
         function paint(done, total, text) {
@@ -297,15 +296,15 @@ jQuery(document).ready(function ($) {
             $btn.prop('disabled', false);
             $box.addClass('has-error');
             $fill.css('width', '0%');
-            $label.text(message || codeGuardian.strings.error);
+            $label.text(message || milardovichFMM.strings.error);
         }
 
-        paint(0, 0, codeGuardian.strings.scan_preparing);
+        paint(0, 0, milardovichFMM.strings.scan_preparing);
 
-        $.post(codeGuardian.ajax_url, {
-            action: 'code_guardian_scan_queue',
+        $.post(milardovichFMM.ajax_url, {
+            action: 'milardovich_fmm_scan_queue',
             type: $btn.data('type'),
-            nonce: codeGuardian.nonce
+            nonce: milardovichFMM.nonce
         }).done(function (resp) {
             if (!resp || !resp.success || !resp.data) {
                 abort(resp && resp.data ? resp.data : null);
@@ -318,17 +317,17 @@ jQuery(document).ready(function ($) {
             var failed = 0;
 
             function finish() {
-                paint(total, total, codeGuardian.strings.scan_comparing);
-                $.post(codeGuardian.ajax_url, {
-                    action: 'code_guardian_scan_finish',
-                    nonce: codeGuardian.nonce
+                paint(total, total, milardovichFMM.strings.scan_comparing);
+                $.post(milardovichFMM.ajax_url, {
+                    action: 'milardovich_fmm_scan_finish',
+                    nonce: milardovichFMM.nonce
                 }).always(function () {
                     if (failed) {
                         // Leave the page up so the failures stay readable.
-                        abort(codeGuardian.strings.scan_failed.replace('%d', failed));
+                        abort(milardovichFMM.strings.scan_failed.replace('%d', failed));
                         return;
                     }
-                    $label.text(codeGuardian.strings.scan_done);
+                    $label.text(milardovichFMM.strings.scan_done);
                     window.location.reload();
                 });
             }
@@ -339,12 +338,12 @@ jQuery(document).ready(function ($) {
                     return;
                 }
                 var current = queue.shift();
-                paint(done, total, codeGuardian.strings.scan_building + ' ' + current.label);
-                $.post(codeGuardian.ajax_url, {
-                    action: 'code_guardian_scan_item',
+                paint(done, total, milardovichFMM.strings.scan_building + ' ' + current.label);
+                $.post(milardovichFMM.ajax_url, {
+                    action: 'milardovich_fmm_scan_item',
                     type: current.type,
                     item: current.item,
-                    nonce: codeGuardian.nonce
+                    nonce: milardovichFMM.nonce
                 }).done(function (r) {
                     if (!r || !r.success) {
                         failed++;
@@ -353,7 +352,7 @@ jQuery(document).ready(function ($) {
                     failed++;
                 }).always(function () {
                     done++;
-                    paint(done, total, codeGuardian.strings.scan_building + ' ' + current.label);
+                    paint(done, total, milardovichFMM.strings.scan_building + ' ' + current.label);
                     step();
                 });
             }
@@ -368,58 +367,58 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    $(document).on('click', '.code-guardian-clear-snapshots', function (e) {
+    $(document).on('click', '.milardovich-fmm-clear-snapshots', function (e) {
         e.preventDefault();
         showAdminModal('Clear Snapshots', 'This will delete all baselines for every plugin and theme. Continue?', function () {
             $.ajax({
-                url: codeGuardian.ajax_url,
+                url: milardovichFMM.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'code_guardian_clear_snapshots',
-                    nonce: codeGuardian.nonce
+                    action: 'milardovich_fmm_clear_snapshots',
+                    nonce: milardovichFMM.nonce
                 }
             }).done(function (resp) {
                 if (resp && resp.success) {
                     window.location.reload();
                 } else {
-                    alert(resp && resp.data ? resp.data : codeGuardian.strings.error);
+                    alert(resp && resp.data ? resp.data : milardovichFMM.strings.error);
                 }
             });
         });
     });
 
-    $(document).on('click', '.code-guardian-rescan-all', function (e) {
+    $(document).on('click', '.milardovich-fmm-rescan-all', function (e) {
         e.preventDefault();
         var $btn = $(this);
         $btn.prop('disabled', true);
         $.ajax({
-            url: codeGuardian.ajax_url,
+            url: milardovichFMM.ajax_url,
             type: 'POST',
             data: {
-                action: 'code_guardian_rescan_all',
-                nonce: codeGuardian.nonce
+                action: 'milardovich_fmm_rescan_all',
+                nonce: milardovichFMM.nonce
             }
         }).done(function (resp) {
             if (resp && resp.success) {
                 window.location.reload();
             } else {
                 $btn.prop('disabled', false);
-                alert(resp && resp.data ? resp.data : codeGuardian.strings.error);
+                alert(resp && resp.data ? resp.data : milardovichFMM.strings.error);
             }
         });
     });
 
     // plugins.php: mark preceding row when we injected a changes row.
-    $('.code-guardian-changes').each(function () {
-        $(this).prev('tr').addClass('code-guardian-has-changes');
+    $('.milardovich-fmm-changes').each(function () {
+        $(this).prev('tr').addClass('milardovich-fmm-has-changes');
     });
 
     // themes.php: inject Modified notice on cards we flagged.
-    $('.theme.code-guardian-has-changes').each(function () {
+    $('.theme.milardovich-fmm-has-changes').each(function () {
         var $card = $(this);
-        if ($card.find('.code-guardian-theme-notice').length === 0) {
+        if ($card.find('.milardovich-fmm-theme-notice').length === 0) {
             $card.find('.theme-actions').before(
-                '<div class="code-guardian-theme-notice notice notice-warning notice-alt inline">' +
+                '<div class="milardovich-fmm-theme-notice notice notice-warning notice-alt inline">' +
                     '<p><span class="dashicons dashicons-warning"></span> Modified</p>' +
                 '</div>'
             );
@@ -429,11 +428,11 @@ jQuery(document).ready(function ($) {
     // Run the change scan out of band. The page is already rendered by the
     // time this fires, so comparing files never delays anything on screen.
     // This also covers installs where WP-Cron cannot spawn its own request.
-    if (window.codeGuardian && codeGuardian.scan_pending) {
-        $.post(codeGuardian.ajax_url, {
-            action: 'code_guardian_run_scan',
-            nonce: codeGuardian.nonce,
-            signature: codeGuardian.scan_signature
+    if (window.milardovichFMM && milardovichFMM.scan_pending) {
+        $.post(milardovichFMM.ajax_url, {
+            action: 'milardovich_fmm_run_scan',
+            nonce: milardovichFMM.nonce,
+            signature: milardovichFMM.scan_signature
         }, function (response) {
             if (!response || !response.success || !response.data || !response.data.updated) {
                 return;
@@ -444,17 +443,54 @@ jQuery(document).ready(function ($) {
             }
             $target.prepend(
                 '<div class="notice notice-info is-dismissible"><p>' +
-                    codeGuardian.strings.scan_updated + ' ' +
-                    '<a href="#" class="code-guardian-reload">' +
-                        codeGuardian.strings.reload +
+                    milardovichFMM.strings.scan_updated + ' ' +
+                    '<a href="#" class="milardovich-fmm-reload">' +
+                        milardovichFMM.strings.reload +
                     '</a>' +
                 '</p></div>'
             );
         });
     }
 
-    $(document).on('click', '.code-guardian-reload', function (e) {
+    $(document).on('click', '.milardovich-fmm-reload', function (e) {
         e.preventDefault();
         window.location.reload();
+    });
+
+    // themes.php is rendered by WordPress itself, so the "Modified" badge has
+    // to be added client-side. The slugs come from the localized data, not from
+    // an inline script printed into the footer.
+    function applyThemeBadges() {
+        var slugs = (window.milardovichFMM && milardovichFMM.modified_themes) || [];
+        if (!slugs.length) {
+            return;
+        }
+        var label = milardovichFMM.strings.modified_badge;
+        slugs.forEach(function (slug) {
+            var $card = $('.theme[data-slug="' + slug + '"]');
+            if (!$card.length) {
+                return;
+            }
+            $card.addClass('milardovich-fmm-has-changes');
+            if ($card.find('.milardovich-fmm-badge').length === 0) {
+                $card.find('.theme-name').append(
+                    ' ',
+                    $('<span class="milardovich-fmm-badge"></span>').text(label)
+                );
+            }
+        });
+    }
+
+    applyThemeBadges();
+
+    $(document).on('click', '.milardovich-fmm-dismiss-welcome', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        $.post(milardovichFMM.ajax_url, {
+            action: 'milardovich_fmm_dismiss_welcome',
+            nonce: $btn.data('nonce')
+        }, function () {
+            $btn.closest('.milardovich-fmm-welcome').fadeOut();
+        });
     });
 });

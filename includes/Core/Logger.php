@@ -1,5 +1,5 @@
 <?php
-namespace WPCodeGuardian\Core;
+namespace MilardovichFMM\Core;
 
 /**
  * Lightweight logger that only writes to the PHP error log when WordPress
@@ -17,7 +17,7 @@ class Logger
     {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-            error_log('Code Guardian: ' . $message);
+            error_log('Milardovich FMM: ' . $message);
         }
     }
 }

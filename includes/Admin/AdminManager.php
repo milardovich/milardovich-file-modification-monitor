@@ -1,9 +1,9 @@
 <?php
-namespace WPCodeGuardian\Admin;
+namespace MilardovichFMM\Admin;
 
-use WPCodeGuardian\Scanner\PluginScanner;
-use WPCodeGuardian\Scanner\ThemeScanner;
-use WPCodeGuardian\Core\Logger;
+use MilardovichFMM\Scanner\PluginScanner;
+use MilardovichFMM\Scanner\ThemeScanner;
+use MilardovichFMM\Core\Logger;
 
 class AdminManager
 {
@@ -11,15 +11,15 @@ class AdminManager
     private $theme_scanner;
 
     /** Recurring background scan, scheduled from the frequency setting. */
-    const CRON_HOOK = 'code_guardian_scan';
+    const CRON_HOOK = 'milardovich_fmm_scan';
 
     /** One-off background scan, queued when the cached map is missing/stale. */
-    const CRON_HOOK_ONCE = 'code_guardian_scan_now';
+    const CRON_HOOK_ONCE = 'milardovich_fmm_scan_now';
 
-    private $changes_map_key  = 'code_guardian_changes_map';
-    private $legacy_cache_key = 'code_guardian_changes_cache';
-    private $last_check_key   = 'code_guardian_last_check';
-    private $scan_lock_key    = 'code_guardian_scan_lock';
+    private $changes_map_key  = 'milardovich_fmm_changes_map';
+    private $legacy_cache_key = 'milardovich_fmm_changes_cache';
+    private $last_check_key   = 'milardovich_fmm_last_check';
+    private $scan_lock_key    = 'milardovich_fmm_scan_lock';
 
     /** Per-request memo of the stored map: null = unread, false = absent. */
     private $changes_map = null;
@@ -36,42 +36,41 @@ class AdminManager
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 
-        add_action('wp_ajax_code_guardian_get_diff', [$this, 'ajax_get_diff']);
-        add_action('wp_ajax_code_guardian_refresh_snapshot', [$this, 'ajax_refresh_snapshot']);
-        add_action('wp_ajax_code_guardian_scan_all', [$this, 'ajax_scan_all']);
-        add_action('wp_ajax_code_guardian_clear_snapshots', [$this, 'ajax_clear_snapshots']);
-        add_action('wp_ajax_code_guardian_rescan_all', [$this, 'ajax_rescan_all']);
-        add_action('wp_ajax_code_guardian_run_scan', [$this, 'ajax_run_scan']);
-        add_action('wp_ajax_code_guardian_scan_queue', [$this, 'ajax_scan_queue']);
-        add_action('wp_ajax_code_guardian_scan_item', [$this, 'ajax_scan_item']);
-        add_action('wp_ajax_code_guardian_scan_finish', [$this, 'ajax_scan_finish']);
-        add_action('wp_ajax_code_guardian_accept_changes', [$this, 'ajax_accept_changes']);
-        add_action('wp_ajax_code_guardian_restore_original', [$this, 'ajax_restore_original']);
-        add_action('wp_ajax_code_guardian_dismiss_welcome', [$this, 'ajax_dismiss_welcome']);
+        add_action('wp_ajax_milardovich_fmm_get_diff', [$this, 'ajax_get_diff']);
+        add_action('wp_ajax_milardovich_fmm_refresh_snapshot', [$this, 'ajax_refresh_snapshot']);
+        add_action('wp_ajax_milardovich_fmm_scan_all', [$this, 'ajax_scan_all']);
+        add_action('wp_ajax_milardovich_fmm_clear_snapshots', [$this, 'ajax_clear_snapshots']);
+        add_action('wp_ajax_milardovich_fmm_rescan_all', [$this, 'ajax_rescan_all']);
+        add_action('wp_ajax_milardovich_fmm_run_scan', [$this, 'ajax_run_scan']);
+        add_action('wp_ajax_milardovich_fmm_scan_queue', [$this, 'ajax_scan_queue']);
+        add_action('wp_ajax_milardovich_fmm_scan_item', [$this, 'ajax_scan_item']);
+        add_action('wp_ajax_milardovich_fmm_scan_finish', [$this, 'ajax_scan_finish']);
+        add_action('wp_ajax_milardovich_fmm_accept_changes', [$this, 'ajax_accept_changes']);
+        add_action('wp_ajax_milardovich_fmm_restore_original', [$this, 'ajax_restore_original']);
+        add_action('wp_ajax_milardovich_fmm_dismiss_welcome', [$this, 'ajax_dismiss_welcome']);
 
         add_filter('plugin_row_meta', [$this, 'add_plugin_row_meta'], 10, 2);
         add_action('admin_notices', [$this, 'show_update_warnings']);
         add_action('admin_notices', [$this, 'show_welcome_notice']);
 
         add_action('load-plugins.php', [$this, 'add_plugin_labels']);
-        add_action('load-themes.php', [$this, 'add_theme_labels']);
     }
 
     public function add_admin_menu()
     {
         add_menu_page(
-            __('Code Guardian', 'code-guardian'),
-            __('Code Guardian', 'code-guardian'),
+            __('Milardovich File Modification Monitor', 'milardovich-file-modification-monitor'),
+            __('File Monitor', 'milardovich-file-modification-monitor'),
             'manage_options',
-            'code-guardian',
+            'milardovich-fmm',
             [$this, 'render_main_page'],
             'dashicons-shield',
             80
         );
-        add_submenu_page('code-guardian', __('Code Guardian', 'code-guardian'), __('Dashboard', 'code-guardian'), 'manage_options', 'code-guardian', [$this, 'render_main_page']);
-        add_submenu_page('code-guardian', __('Plugin Changes', 'code-guardian'), __('Plugin Changes', 'code-guardian'), 'manage_options', 'code-guardian-plugins', [$this, 'render_plugins_page']);
-        add_submenu_page('code-guardian', __('Theme Changes', 'code-guardian'), __('Theme Changes', 'code-guardian'), 'manage_options', 'code-guardian-themes', [$this, 'render_themes_page']);
-        add_submenu_page('code-guardian', __('Settings', 'code-guardian'), __('Settings', 'code-guardian'), 'manage_options', 'code-guardian-settings', [$this, 'render_settings_page']);
+        add_submenu_page('milardovich-fmm', __('Milardovich File Modification Monitor', 'milardovich-file-modification-monitor'), __('Dashboard', 'milardovich-file-modification-monitor'), 'manage_options', 'milardovich-fmm', [$this, 'render_main_page']);
+        add_submenu_page('milardovich-fmm', __('Plugin Changes', 'milardovich-file-modification-monitor'), __('Plugin Changes', 'milardovich-file-modification-monitor'), 'manage_options', 'milardovich-fmm-plugins', [$this, 'render_plugins_page']);
+        add_submenu_page('milardovich-fmm', __('Theme Changes', 'milardovich-file-modification-monitor'), __('Theme Changes', 'milardovich-file-modification-monitor'), 'manage_options', 'milardovich-fmm-themes', [$this, 'render_themes_page']);
+        add_submenu_page('milardovich-fmm', __('Settings', 'milardovich-file-modification-monitor'), __('Settings', 'milardovich-file-modification-monitor'), 'manage_options', 'milardovich-fmm-settings', [$this, 'render_settings_page']);
     }
 
     /**
@@ -82,9 +81,9 @@ class AdminManager
      */
     public static function asset_version($relative_path)
     {
-        $file = CODE_GUARDIAN_PLUGIN_DIR . ltrim($relative_path, '/');
+        $file = MILARDOVICH_FMM_PLUGIN_DIR . ltrim($relative_path, '/');
         $time = file_exists($file) ? filemtime($file) : false;
-        return $time ? CODE_GUARDIAN_VERSION . '.' . $time : CODE_GUARDIAN_VERSION;
+        return $time ? MILARDOVICH_FMM_VERSION . '.' . $time : MILARDOVICH_FMM_VERSION;
     }
 
     /**
@@ -98,14 +97,14 @@ class AdminManager
     public function help_tip($text, $label = '')
     {
         if ($label === '') {
-            $label = __('More information', 'code-guardian');
+            $label = __('More information', 'milardovich-file-modification-monitor');
         }
         return sprintf(
-            '<span class="code-guardian-tip">'
-                . '<button type="button" class="code-guardian-tip-toggle" aria-expanded="false" aria-label="%1$s">'
+            '<span class="milardovich-fmm-tip">'
+                . '<button type="button" class="milardovich-fmm-tip-toggle" aria-expanded="false" aria-label="%1$s">'
                     . '<span class="dashicons dashicons-editor-help" aria-hidden="true"></span>'
                 . '</button>'
-                . '<span class="code-guardian-tip-text" role="tooltip">%2$s</span>'
+                . '<span class="milardovich-fmm-tip-text" role="tooltip">%2$s</span>'
             . '</span>',
             esc_attr($label),
             esc_html($text)
@@ -129,46 +128,46 @@ class AdminManager
      */
     public function baseline_help_text()
     {
-        return __('A baseline is the pristine copy of a plugin or theme, downloaded from WordPress.org the first time you scan it. Code Guardian compares the files on your site against that copy — anything that differs is a local modification.', 'code-guardian');
+        return __('A baseline is the pristine copy of a plugin or theme, downloaded from WordPress.org the first time you scan it. This plugin compares the files on your site against that copy — anything that differs is a local modification.', 'milardovich-file-modification-monitor');
     }
 
     public function modified_help_text()
     {
-        return __('These items have files that no longer match their baseline, which means someone edited them directly on the server. Updating them would overwrite those edits.', 'code-guardian');
+        return __('These items have files that no longer match their baseline, which means someone edited them directly on the server. Updating them would overwrite those edits.', 'milardovich-file-modification-monitor');
     }
 
     public function status_help_text()
     {
-        return __('No Baseline: there is nothing to compare against yet — create one first. Clean: every file matches the baseline. Modified: at least one file differs from it.', 'code-guardian');
+        return __('No Baseline: there is nothing to compare against yet — create one first. Clean: every file matches the baseline. Modified: at least one file differs from it.', 'milardovich-file-modification-monitor');
     }
 
     public function render_main_page()
     {
-        include CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/main-page.php';
+        include MILARDOVICH_FMM_PLUGIN_DIR . 'admin/views/main-page.php';
     }
 
     public function render_plugins_page()
     {
-        include CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/plugins-page.php';
+        include MILARDOVICH_FMM_PLUGIN_DIR . 'admin/views/plugins-page.php';
     }
 
     public function render_themes_page()
     {
-        include CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/themes-page.php';
+        include MILARDOVICH_FMM_PLUGIN_DIR . 'admin/views/themes-page.php';
     }
 
     public function render_settings_page()
     {
-        include CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/settings-page.php';
+        include MILARDOVICH_FMM_PLUGIN_DIR . 'admin/views/settings-page.php';
     }
 
     public function register_settings()
     {
-        register_setting('code_guardian_settings', 'code_guardian_scan_frequency', ['sanitize_callback' => [$this, 'sanitize_scan_frequency']]);
-        register_setting('code_guardian_settings', 'code_guardian_email_notifications', ['sanitize_callback' => 'absint']);
-        register_setting('code_guardian_settings', 'code_guardian_notification_email', ['sanitize_callback' => 'sanitize_email']);
-        register_setting('code_guardian_settings', 'code_guardian_ignored_files', ['sanitize_callback' => 'sanitize_textarea_field']);
-        register_setting('code_guardian_settings', 'code_guardian_show_warnings', ['sanitize_callback' => 'absint']);
+        register_setting('milardovich_fmm_settings', 'milardovich_fmm_scan_frequency', ['sanitize_callback' => [$this, 'sanitize_scan_frequency']]);
+        register_setting('milardovich_fmm_settings', 'milardovich_fmm_email_notifications', ['sanitize_callback' => 'absint']);
+        register_setting('milardovich_fmm_settings', 'milardovich_fmm_notification_email', ['sanitize_callback' => 'sanitize_email']);
+        register_setting('milardovich_fmm_settings', 'milardovich_fmm_ignored_files', ['sanitize_callback' => 'sanitize_textarea_field']);
+        register_setting('milardovich_fmm_settings', 'milardovich_fmm_show_warnings', ['sanitize_callback' => 'absint']);
     }
 
     public function sanitize_scan_frequency($value)
@@ -184,7 +183,7 @@ class AdminManager
      */
     public function is_scan_due()
     {
-        if (get_option('code_guardian_scan_frequency', 'daily') === 'disabled') {
+        if (get_option('milardovich_fmm_scan_frequency', 'daily') === 'disabled') {
             return false;
         }
         return (time() - $this->get_last_check()) >= $this->get_scan_interval();
@@ -192,7 +191,7 @@ class AdminManager
 
     public function get_scan_interval()
     {
-        $frequency = get_option('code_guardian_scan_frequency', 'daily');
+        $frequency = get_option('milardovich_fmm_scan_frequency', 'daily');
         $intervals = [
             'hourly'     => HOUR_IN_SECONDS,
             'twicedaily' => 12 * HOUR_IN_SECONDS,
@@ -272,7 +271,7 @@ class AdminManager
      */
     public function needs_background_scan()
     {
-        if (get_option('code_guardian_scan_frequency', 'daily') === 'disabled') {
+        if (get_option('milardovich_fmm_scan_frequency', 'daily') === 'disabled') {
             return false;
         }
         if (get_transient($this->scan_lock_key)) {
@@ -287,7 +286,7 @@ class AdminManager
      */
     public function queue_background_scan()
     {
-        if (get_option('code_guardian_scan_frequency', 'daily') === 'disabled') {
+        if (get_option('milardovich_fmm_scan_frequency', 'daily') === 'disabled') {
             return;
         }
         if (get_transient($this->scan_lock_key)) {
@@ -373,7 +372,7 @@ class AdminManager
 
     public function enqueue_admin_assets($hook)
     {
-        $is_guardian = strpos($hook, 'code-guardian') !== false;
+        $is_guardian = strpos($hook, 'milardovich-fmm') !== false;
         $is_wp_page  = in_array($hook, ['plugins.php', 'themes.php', 'update.php', 'update-core.php'], true);
         if (!$is_guardian && !$is_wp_page) {
             return;
@@ -381,55 +380,61 @@ class AdminManager
         // The modal is laid out entirely by admin.css (see the Modal section
         // there); dashicons supplies its close glyph.
         wp_enqueue_style(
-            'code-guardian-admin',
-            CODE_GUARDIAN_PLUGIN_URL . 'assets/css/admin.css',
+            'milardovich-fmm-admin',
+            MILARDOVICH_FMM_PLUGIN_URL . 'assets/css/admin.css',
             ['dashicons'],
             self::asset_version('assets/css/admin.css')
         );
         wp_enqueue_style(
-            'code-guardian-diff',
-            CODE_GUARDIAN_PLUGIN_URL . 'assets/css/diff.css',
+            'milardovich-fmm-diff',
+            MILARDOVICH_FMM_PLUGIN_URL . 'assets/css/diff.css',
             [],
             self::asset_version('assets/css/diff.css')
         );
         wp_enqueue_script(
-            'code-guardian-admin',
-            CODE_GUARDIAN_PLUGIN_URL . 'assets/js/admin.js',
+            'milardovich-fmm-admin',
+            MILARDOVICH_FMM_PLUGIN_URL . 'assets/js/admin.js',
             ['jquery'],
             self::asset_version('assets/js/admin.js'),
             true
         );
         wp_localize_script(
-            'code-guardian-admin',
-            'codeGuardian',
+            'milardovich-fmm-admin',
+            'milardovichFMM',
             [
                 'ajax_url'       => admin_url('admin-ajax.php'),
-                'nonce'          => wp_create_nonce('code_guardian'),
+                'nonce'          => wp_create_nonce('milardovich_fmm'),
                 'scan_pending'   => $this->needs_background_scan(),
                 'scan_signature' => $this->get_map_signature(),
+                // Slugs of the themes flagged by the last scan. The badges on
+                // themes.php are painted by admin.js from this list; the page
+                // itself is rendered by WordPress, so there is nothing to hook
+                // into server-side.
+                'modified_themes' => array_values(array_keys($this->get_changes_map()['themes'])),
                 'strings'  => [
-                    'view_changes'     => __('View Changes', 'code-guardian'),
-                    'refresh_snapshot' => __('Refresh Baseline', 'code-guardian'),
-                    'confirm_refresh'  => __('Are you sure you want to refresh the baseline? This will overwrite the stored snapshot.', 'code-guardian'),
-                    'loading'          => __('Loading…', 'code-guardian'),
-                    'error'            => __('An error occurred.', 'code-guardian'),
-                    'scan_updated'     => __('Code Guardian finished checking for code changes in the background.', 'code-guardian'),
-                    'reload'           => __('Reload to see the results', 'code-guardian'),
-                    'scan_preparing'   => __('Preparing…', 'code-guardian'),
-                    'scan_building'    => __('Building baseline for', 'code-guardian'),
-                    'scan_comparing'   => __('Comparing files against the baselines…', 'code-guardian'),
-                    'scan_done'        => __('Done. Reloading…', 'code-guardian'),
+                    'view_changes'     => __('View Changes', 'milardovich-file-modification-monitor'),
+                    'refresh_snapshot' => __('Refresh Baseline', 'milardovich-file-modification-monitor'),
+                    'confirm_refresh'  => __('Are you sure you want to refresh the baseline? This will overwrite the stored snapshot.', 'milardovich-file-modification-monitor'),
+                    'loading'          => __('Loading…', 'milardovich-file-modification-monitor'),
+                    'error'            => __('An error occurred.', 'milardovich-file-modification-monitor'),
+                    'scan_updated'     => __('Milardovich File Modification Monitor finished checking for code changes in the background.', 'milardovich-file-modification-monitor'),
+                    'reload'           => __('Reload to see the results', 'milardovich-file-modification-monitor'),
+                    'scan_preparing'   => __('Preparing…', 'milardovich-file-modification-monitor'),
+                    'scan_building'    => __('Building baseline for', 'milardovich-file-modification-monitor'),
+                    'scan_comparing'   => __('Comparing files against the baselines…', 'milardovich-file-modification-monitor'),
+                    'scan_done'        => __('Done. Reloading…', 'milardovich-file-modification-monitor'),
                     /* translators: %d: number of items that could not be scanned. */
-                    'scan_failed'      => __('%d item(s) could not be scanned.', 'code-guardian'),
-                    'close'            => __('Close', 'code-guardian'),
-                    'keep_changes'     => __('Keep My Changes', 'code-guardian'),
-                    'restore_original' => __('Restore Original', 'code-guardian'),
-                    'keep_title'       => __('Keep your changes?', 'code-guardian'),
-                    'keep_confirm'     => __('The files on disk become the new baseline, so these changes stop being reported. Nothing on disk is touched.', 'code-guardian'),
-                    'restore_title'    => __('Restore the original files?', 'code-guardian'),
+                    'scan_failed'      => __('%d item(s) could not be scanned.', 'milardovich-file-modification-monitor'),
+                    'close'            => __('Close', 'milardovich-file-modification-monitor'),
+                    'keep_changes'     => __('Keep My Changes', 'milardovich-file-modification-monitor'),
+                    'restore_original' => __('Restore Original', 'milardovich-file-modification-monitor'),
+                    'keep_title'       => __('Keep your changes?', 'milardovich-file-modification-monitor'),
+                    'keep_confirm'     => __('The files on disk become the new baseline, so these changes stop being reported. Nothing on disk is touched.', 'milardovich-file-modification-monitor'),
+                    'restore_title'    => __('Restore the original files?', 'milardovich-file-modification-monitor'),
                     /* translators: %d: number of affected files. */
-                    'restore_confirm'  => __('This overwrites %d file(s) on disk with the original version from the baseline. Your changes to them will be lost and this cannot be undone.', 'code-guardian'),
-                    'working'          => __('Working…', 'code-guardian'),
+                    'restore_confirm'  => __('This overwrites %d file(s) on disk with the original version from the baseline. Your changes to them will be lost and this cannot be undone.', 'milardovich-file-modification-monitor'),
+                    'working'          => __('Working…', 'milardovich-file-modification-monitor'),
+                    'modified_badge'   => __('Modified', 'milardovich-file-modification-monitor'),
                 ],
             ]
         );
@@ -449,7 +454,7 @@ class AdminManager
             return;
         }
         ?>
-        <tr class="plugin-update-tr code-guardian-changes" data-plugin="<?php echo esc_attr($plugin_file); ?>">
+        <tr class="plugin-update-tr milardovich-fmm-changes" data-plugin="<?php echo esc_attr($plugin_file); ?>">
             <td colspan="4" class="plugin-update colspanchange">
                 <div class="notice notice-warning notice-alt inline">
                     <p>
@@ -460,48 +465,19 @@ class AdminManager
                                 'Code changes detected: %d file has been modified.',
                                 'Code changes detected: %d files have been modified.',
                                 $count,
-                                'code-guardian'
+                                'milardovich-file-modification-monitor'
                             )),
                             (int) $count
                         );
                         ?>
                         &nbsp;
-                        <a href="#" class="code-guardian-view-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('View Changes', 'code-guardian'); ?></a>
+                        <a href="#" class="milardovich-fmm-view-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('View Changes', 'milardovich-file-modification-monitor'); ?></a>
                         &nbsp;|&nbsp;
-                        <a href="#" class="code-guardian-keep-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'code-guardian'); ?></a>
+                        <a href="#" class="milardovich-fmm-keep-changes" data-type="plugin" data-item="<?php echo esc_attr($plugin_file); ?>"><?php esc_html_e('Accept Changes', 'milardovich-file-modification-monitor'); ?></a>
                     </p>
                 </div>
             </td>
         </tr>
-        <?php
-    }
-
-    public function add_theme_labels()
-    {
-        add_action('admin_footer', [$this, 'inject_theme_labels_script']);
-    }
-
-    public function inject_theme_labels_script()
-    {
-        $map            = $this->get_changes_map();
-        $modified_slugs = array_keys($map['themes']);
-        if (empty($modified_slugs)) {
-            return;
-        }
-        $badge_label = __('Modified', 'code-guardian');
-        ?>
-        <script>
-        jQuery(function ($) {
-            var modified = <?php echo wp_json_encode($modified_slugs); ?>;
-            modified.forEach(function (slug) {
-                var $card = $('.theme[data-slug="' + slug + '"]');
-                $card.addClass('code-guardian-has-changes');
-                if ($card.find('.code-guardian-badge').length === 0) {
-                    $card.find('.theme-name').append(' <span class="code-guardian-badge"><?php echo esc_js($badge_label); ?></span>');
-                }
-            });
-        });
-        </script>
         <?php
     }
 
@@ -510,7 +486,7 @@ class AdminManager
         if (!$this->has_changes_cached($plugin_file, 'plugin')) {
             return $plugin_meta;
         }
-        $plugin_meta[] = '<span class="code-guardian-indicator">' . esc_html__('Modified', 'code-guardian') . '</span>';
+        $plugin_meta[] = '<span class="milardovich-fmm-indicator">' . esc_html__('Modified', 'milardovich-file-modification-monitor') . '</span>';
         return $plugin_meta;
     }
 
@@ -542,16 +518,16 @@ class AdminManager
         }
         ?>
         <div class="notice notice-warning is-dismissible">
-            <p><strong><?php esc_html_e('Code Guardian Alert:', 'code-guardian'); ?></strong></p>
+            <p><strong><?php esc_html_e('Milardovich File Modification Monitor Alert:', 'milardovich-file-modification-monitor'); ?></strong></p>
             <?php if (!empty($modified_plugins)) : ?>
-                <p><?php esc_html_e('Plugins with custom modifications:', 'code-guardian'); ?> <em><?php echo esc_html(implode(', ', $modified_plugins)); ?></em></p>
+                <p><?php esc_html_e('Plugins with custom modifications:', 'milardovich-file-modification-monitor'); ?> <em><?php echo esc_html(implode(', ', $modified_plugins)); ?></em></p>
             <?php endif; ?>
             <?php if (!empty($modified_themes)) : ?>
-                <p><?php esc_html_e('Themes with custom modifications:', 'code-guardian'); ?> <em><?php echo esc_html(implode(', ', $modified_themes)); ?></em></p>
+                <p><?php esc_html_e('Themes with custom modifications:', 'milardovich-file-modification-monitor'); ?> <em><?php echo esc_html(implode(', ', $modified_themes)); ?></em></p>
             <?php endif; ?>
             <p>
-                <?php esc_html_e('Updating these items will overwrite your custom changes.', 'code-guardian'); ?>
-                <a href="<?php echo esc_url(admin_url('admin.php?page=code-guardian')); ?>"><?php esc_html_e('Review changes before updating', 'code-guardian'); ?></a>
+                <?php esc_html_e('Updating these items will overwrite your custom changes.', 'milardovich-file-modification-monitor'); ?>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=milardovich-fmm')); ?>"><?php esc_html_e('Review changes before updating', 'milardovich-file-modification-monitor'); ?></a>
             </p>
         </div>
         <?php
@@ -559,43 +535,29 @@ class AdminManager
 
     public function show_welcome_notice()
     {
-        if (!get_transient('code_guardian_show_welcome_notice')) {
+        if (!get_transient('milardovich_fmm_show_welcome_notice')) {
             return;
         }
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
         if (!$screen) {
             return;
         }
-        $allowed = ['plugins', 'themes', 'toplevel_page_code-guardian'];
+        $allowed = ['plugins', 'themes', 'toplevel_page_milardovich-fmm'];
         if (!in_array($screen->id, $allowed, true)) {
             return;
         }
-        $plugins_url = admin_url('admin.php?page=code-guardian-plugins');
-        $themes_url  = admin_url('admin.php?page=code-guardian-themes');
-        $nonce       = wp_create_nonce('code_guardian_dismiss_welcome');
+        $plugins_url = admin_url('admin.php?page=milardovich-fmm-plugins');
+        $themes_url  = admin_url('admin.php?page=milardovich-fmm-themes');
+        $nonce       = wp_create_nonce('milardovich_fmm_dismiss_welcome');
         ?>
-        <div class="notice notice-info is-dismissible code-guardian-welcome">
-            <h3><?php esc_html_e('Welcome to Code Guardian!', 'code-guardian'); ?></h3>
-            <p><?php esc_html_e('No baselines exist yet. Create them to start detecting unauthorized code modifications.', 'code-guardian'); ?></p>
+        <div class="notice notice-info is-dismissible milardovich-fmm-welcome">
+            <h3><?php esc_html_e('Welcome to Milardovich File Modification Monitor!', 'milardovich-file-modification-monitor'); ?></h3>
+            <p><?php esc_html_e('No baselines exist yet. Create them to start detecting unauthorized code modifications.', 'milardovich-file-modification-monitor'); ?></p>
             <p>
-                <a href="<?php echo esc_url($plugins_url); ?>" class="button button-primary"><?php esc_html_e('Create Plugin Baselines', 'code-guardian'); ?></a>
-                <a href="<?php echo esc_url($themes_url); ?>" class="button"><?php esc_html_e('Create Theme Baselines', 'code-guardian'); ?></a>
-                <a href="#" class="button code-guardian-dismiss-welcome" data-nonce="<?php echo esc_attr($nonce); ?>"><?php esc_html_e('Dismiss', 'code-guardian'); ?></a>
+                <a href="<?php echo esc_url($plugins_url); ?>" class="button button-primary"><?php esc_html_e('Create Plugin Baselines', 'milardovich-file-modification-monitor'); ?></a>
+                <a href="<?php echo esc_url($themes_url); ?>" class="button"><?php esc_html_e('Create Theme Baselines', 'milardovich-file-modification-monitor'); ?></a>
+                <a href="#" class="button milardovich-fmm-dismiss-welcome" data-nonce="<?php echo esc_attr($nonce); ?>"><?php esc_html_e('Dismiss', 'milardovich-file-modification-monitor'); ?></a>
             </p>
-            <script>
-            jQuery(function ($) {
-                $('.code-guardian-dismiss-welcome').on('click', function (e) {
-                    e.preventDefault();
-                    var $btn = $(this);
-                    $.post(ajaxurl, {
-                        action: 'code_guardian_dismiss_welcome',
-                        nonce: $btn.data('nonce')
-                    }, function () {
-                        $btn.closest('.code-guardian-welcome').fadeOut();
-                    });
-                });
-            });
-            </script>
         </div>
         <?php
     }
@@ -616,7 +578,7 @@ class AdminManager
             }
             if (empty($changes)) {
                 wp_send_json_success([
-                    'html'    => '<p>' . esc_html__('No changes detected.', 'code-guardian') . '</p>',
+                    'html'    => '<p>' . esc_html__('No changes detected.', 'milardovich-file-modification-monitor') . '</p>',
                     'changes' => [],
                 ]);
             }
@@ -624,7 +586,7 @@ class AdminManager
             $diff_changes = $changes;
             $diff_item    = $item;
             $diff_type    = $type;
-            include CODE_GUARDIAN_PLUGIN_DIR . 'admin/views/diff-modal.php';
+            include MILARDOVICH_FMM_PLUGIN_DIR . 'admin/views/diff-modal.php';
             $html = ob_get_clean();
             wp_send_json_success(['html' => $html, 'changes' => $changes]);
         } catch (\Exception $e) {
@@ -649,8 +611,8 @@ class AdminManager
             }
             $this->invalidate_changes_map();
             $msg = !empty($result['remote'])
-                ? __('Baseline created/updated successfully from WordPress.org', 'code-guardian')
-                : __('Baseline updated from current files', 'code-guardian');
+                ? __('Baseline created/updated successfully from WordPress.org', 'milardovich-file-modification-monitor')
+                : __('Baseline updated from current files', 'milardovich-file-modification-monitor');
             Logger::log('refreshed ' . $type . ' ' . $item);
             wp_send_json_success(['message' => $msg]);
         } catch (\Exception $e) {
@@ -677,7 +639,7 @@ class AdminManager
             // leaving the next admin page load to notice it is stale.
             $this->invalidate_changes_map();
             $this->run_scan();
-            wp_send_json_success(['message' => __('Scan completed successfully', 'code-guardian')]);
+            wp_send_json_success(['message' => __('Scan completed successfully', 'milardovich-file-modification-monitor')]);
         } catch (\Exception $e) {
             Logger::log('ajax_scan_all: ' . $e->getMessage());
             wp_send_json_error('Error: ' . $e->getMessage());
@@ -690,11 +652,11 @@ class AdminManager
             $this->verify_ajax_request();
             global $wpdb;
             // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- table names cannot be parameterized; values are internal constants.
-            $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}code_guardian_plugins");
-            $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}code_guardian_themes");
+            $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}milardovich_fmm_plugins");
+            $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}milardovich_fmm_themes");
             // phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
             $this->invalidate_changes_map();
-            wp_send_json_success(['message' => __('All snapshots cleared successfully', 'code-guardian')]);
+            wp_send_json_success(['message' => __('All snapshots cleared successfully', 'milardovich-file-modification-monitor')]);
         } catch (\Exception $e) {
             Logger::log('ajax_clear_snapshots: ' . $e->getMessage());
             wp_send_json_error('Error: ' . $e->getMessage());
@@ -709,7 +671,7 @@ class AdminManager
             $this->theme_scanner->scan_all();
             $this->invalidate_changes_map();
             $this->run_scan();
-            wp_send_json_success(['message' => __('Rescan completed successfully', 'code-guardian')]);
+            wp_send_json_success(['message' => __('Rescan completed successfully', 'milardovich-file-modification-monitor')]);
         } catch (\Exception $e) {
             Logger::log('ajax_rescan_all: ' . $e->getMessage());
             wp_send_json_error('Error: ' . $e->getMessage());
@@ -738,7 +700,7 @@ class AdminManager
             $this->invalidate_changes_map();
             $this->run_scan();
             wp_send_json_success([
-                'message' => __('Your changes are now the baseline.', 'code-guardian'),
+                'message' => __('Your changes are now the baseline.', 'milardovich-file-modification-monitor'),
             ]);
         } catch (\Exception $e) {
             Logger::log('ajax_accept_changes: ' . $e->getMessage());
@@ -771,7 +733,7 @@ class AdminManager
             if (!empty($result['failed'])) {
                 wp_send_json_error(sprintf(
                     /* translators: %d: number of files that could not be written. */
-                    __('%d file(s) could not be written. Check the file permissions.', 'code-guardian'),
+                    __('%d file(s) could not be written. Check the file permissions.', 'milardovich-file-modification-monitor'),
                     (int) $result['failed']
                 ));
                 return;
@@ -779,7 +741,7 @@ class AdminManager
             wp_send_json_success([
                 'message' => sprintf(
                     /* translators: 1: files rewritten, 2: files removed. */
-                    __('Restored the original files: %1$d rewritten, %2$d removed.', 'code-guardian'),
+                    __('Restored the original files: %1$d rewritten, %2$d removed.', 'milardovich-file-modification-monitor'),
                     (int) $result['restored'],
                     (int) $result['removed']
                 ),
@@ -907,11 +869,11 @@ class AdminManager
     public function ajax_dismiss_welcome()
     {
         try {
-            check_ajax_referer('code_guardian_dismiss_welcome', 'nonce');
+            check_ajax_referer('milardovich_fmm_dismiss_welcome', 'nonce');
             if (!current_user_can('manage_options')) {
                 wp_send_json_error('Forbidden', 403);
             }
-            delete_transient('code_guardian_show_welcome_notice');
+            delete_transient('milardovich_fmm_show_welcome_notice');
             wp_send_json_success();
         } catch (\Exception $e) {
             Logger::log('ajax_dismiss_welcome: ' . $e->getMessage());
@@ -925,7 +887,7 @@ class AdminManager
      */
     private function verify_ajax_request()
     {
-        check_ajax_referer('code_guardian', 'nonce');
+        check_ajax_referer('milardovich_fmm', 'nonce');
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Forbidden', 403);
         }

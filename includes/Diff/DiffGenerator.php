@@ -1,5 +1,5 @@
 <?php
-namespace WPCodeGuardian\Diff;
+namespace MilardovichFMM\Diff;
 
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\UnifiedDiffOutputBuilder;
@@ -21,7 +21,7 @@ class DiffGenerator
         }
         try {
             return $this->differ->diff((string) $original, (string) $modified);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return 'Error generating diff: ' . $e->getMessage();
         }
     }

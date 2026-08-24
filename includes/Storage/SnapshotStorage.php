@@ -1,5 +1,5 @@
 <?php
-namespace WPCodeGuardian\Storage;
+namespace MilardovichFMM\Storage;
 
 class SnapshotStorage
 {
@@ -9,8 +9,8 @@ class SnapshotStorage
     public function __construct()
     {
         global $wpdb;
-        $this->table_plugins = $wpdb->prefix . 'code_guardian_plugins';
-        $this->table_themes  = $wpdb->prefix . 'code_guardian_themes';
+        $this->table_plugins = $wpdb->prefix . 'milardovich_fmm_plugins';
+        $this->table_themes  = $wpdb->prefix . 'milardovich_fmm_themes';
     }
 
     public function create_tables()
