@@ -22,7 +22,7 @@ $milardovich_fmm_tables = [
     $wpdb->prefix . 'milardovich_fmm_themes',
 ];
 foreach ($milardovich_fmm_tables as $milardovich_fmm_table) {
-    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is an internal constant, not user input.
+    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- dropping the plugin's own tables on uninstall is the entire point of this file; the table name is an internal constant, not user input.
     $wpdb->query("DROP TABLE IF EXISTS {$milardovich_fmm_table}");
 }
 

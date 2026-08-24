@@ -1,6 +1,11 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
+// This template is included from inside a method of AdminManager, so the
+// variables below are local to that method, not globals. PHPCS cannot see
+// the include site and reports them as unprefixed globals.
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+
 $frequency        = get_option('milardovich_fmm_scan_frequency', 'daily');
 $email_notif      = (int) get_option('milardovich_fmm_email_notifications', 0);
 $notif_email      = get_option('milardovich_fmm_notification_email', get_option('admin_email'));

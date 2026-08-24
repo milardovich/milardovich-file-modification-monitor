@@ -1,6 +1,11 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
+// This template is included from inside a method of AdminManager, so the
+// variables below are local to that method, not globals. PHPCS cannot see
+// the include site and reports them as unprefixed globals.
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+
 if (!function_exists('get_plugins')) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
 }

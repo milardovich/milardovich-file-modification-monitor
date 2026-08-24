@@ -53,6 +53,7 @@ class SnapshotStorage
     public function save_plugin_snapshot($slug, $path, $content, $version)
     {
         global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; there is nothing in the object cache to read or invalidate.
         $wpdb->replace(
             $this->table_plugins,
             [
@@ -70,6 +71,7 @@ class SnapshotStorage
     public function save_theme_snapshot($slug, $path, $content, $version)
     {
         global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; there is nothing in the object cache to read or invalidate.
         $wpdb->replace(
             $this->table_themes,
             [
@@ -87,8 +89,8 @@ class SnapshotStorage
     public function get_plugin_snapshot($slug, $path)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         return $wpdb->get_row(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT * FROM {$this->table_plugins}
                  WHERE plugin_slug = %s AND file_path = %s
@@ -98,13 +100,14 @@ class SnapshotStorage
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     }
 
     public function get_theme_snapshot($slug, $path)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         return $wpdb->get_row(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT * FROM {$this->table_themes}
                  WHERE theme_slug = %s AND file_path = %s
@@ -114,6 +117,7 @@ class SnapshotStorage
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     }
 
     /**
@@ -124,8 +128,8 @@ class SnapshotStorage
     public function get_plugin_file_hashes($slug)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         $rows = $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT t.file_path, t.file_hash
                  FROM {$this->table_plugins} t
@@ -139,6 +143,7 @@ class SnapshotStorage
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $map = [];
         foreach ($rows as $row) {
             $map[$row['file_path']] = $row['file_hash'];
@@ -149,8 +154,8 @@ class SnapshotStorage
     public function get_theme_file_hashes($slug)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         $rows = $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT t.file_path, t.file_hash
                  FROM {$this->table_themes} t
@@ -164,6 +169,7 @@ class SnapshotStorage
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $map = [];
         foreach ($rows as $row) {
             $map[$row['file_path']] = $row['file_hash'];
@@ -174,38 +180,42 @@ class SnapshotStorage
     public function get_all_plugin_files($slug)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         return $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT DISTINCT file_path FROM {$this->table_plugins} WHERE plugin_slug = %s",
                 $slug
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     }
 
     public function get_all_theme_files($slug)
     {
         global $wpdb;
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the table name is an internal constant built from $wpdb->prefix, so it cannot be passed as a placeholder; every value in these queries is. These are the plugin's own tables and the results are not cacheable across requests.
         return $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table name is an internal constant and cannot be parameterised; these are the plugin's own tables.
             $wpdb->prepare(
                 "SELECT DISTINCT file_path FROM {$this->table_themes} WHERE theme_slug = %s",
                 $slug
             ),
             ARRAY_A
         );
+        // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     }
 
     public function clear_plugin_snapshots($slug)
     {
         global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; there is nothing in the object cache to read or invalidate.
         $wpdb->delete($this->table_plugins, ['plugin_slug' => $slug], ['%s']);
     }
 
     public function clear_theme_snapshots($slug)
     {
         global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own table; there is nothing in the object cache to read or invalidate.
         $wpdb->delete($this->table_themes, ['theme_slug' => $slug], ['%s']);
     }
 }

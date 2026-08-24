@@ -78,8 +78,10 @@ class Plugin
         $plugins_table = $wpdb->prefix . 'milardovich_fmm_plugins';
         $themes_table  = $wpdb->prefix . 'milardovich_fmm_themes';
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- checking that the plugin's own tables exist; a cached answer would defeat the check.
         $plugins_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $plugins_table));
         $themes_exists  = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $themes_table));
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
         if (!$plugins_exists || !$themes_exists) {
             $this->storage->create_tables();

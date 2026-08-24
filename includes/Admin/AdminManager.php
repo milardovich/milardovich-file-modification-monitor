@@ -566,8 +566,8 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
-            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
             Logger::log('ajax_get_diff type=' . $type . ' item=' . $item);
 
             $changes = [];
@@ -599,8 +599,8 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
-            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
             $result = ['remote' => false];
             if ($type === 'plugin') {
                 $result = $this->plugin_scanner->refresh_snapshot($item);
@@ -625,7 +625,7 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
 
             if ($type === 'plugins') {
                 $this->plugin_scanner->scan_all();
@@ -686,8 +686,8 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
-            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
 
             if ($type === 'plugin') {
                 $this->plugin_scanner->accept_changes($item);
@@ -716,8 +716,8 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
-            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
 
             if ($type === 'plugin') {
                 $result = $this->plugin_scanner->restore_from_baseline($item);
@@ -761,7 +761,7 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : 'all';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : 'all'; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
             if (!function_exists('get_plugins')) {
                 require_once ABSPATH . 'wp-admin/includes/plugin.php';
             }
@@ -801,8 +801,8 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
-            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : '';
+            $type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
+            $item = isset($_POST['item']) ? sanitize_text_field(wp_unslash($_POST['item'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
 
             if ($type === 'plugin') {
                 $result = $this->plugin_scanner->refresh_snapshot($item);
@@ -851,7 +851,7 @@ class AdminManager
     {
         try {
             $this->verify_ajax_request();
-            $rendered = isset($_POST['signature']) ? sanitize_text_field(wp_unslash($_POST['signature'])) : '';
+            $rendered = isset($_POST['signature']) ? sanitize_text_field(wp_unslash($_POST['signature'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verify_ajax_request() above checks the nonce and the manage_options capability.
             $ran      = $this->run_scan();
             $map      = $this->get_changes_map();
             wp_send_json_success([

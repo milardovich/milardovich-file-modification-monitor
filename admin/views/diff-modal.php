@@ -1,6 +1,11 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
+// This template is included from inside a method of AdminManager, so the
+// variables below are local to that method, not globals. PHPCS cannot see
+// the include site and reports them as unprefixed globals.
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+
 /** @var array $diff_changes */
 /** @var string $diff_item */
 /** @var string $diff_type */
